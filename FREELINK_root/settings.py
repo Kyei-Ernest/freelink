@@ -111,7 +111,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'kookyei44@gmail.com'
-EMAIL_HOST_PASSWORD = 'Enextoe1@'
+EMAIL_HOST_PASSWORD = 'pass'
 DEFAULT_FROM_EMAIL = 'Freelink Ghana kookyei44@gmail.com'
 
 
