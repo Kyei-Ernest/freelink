@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'ratings',
     'campus',
     'notifications',
+    'chat',
+    'escrow',
+    'wallet',
 ]
 
 MIDDLEWARE = [
@@ -108,7 +111,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'kookyei44@gmail.com'
-EMAIL_HOST_PASSWORD = 'pass'
+EMAIL_HOST_PASSWORD = 'Enextoe1@'
 DEFAULT_FROM_EMAIL = 'Freelink Ghana kookyei44@gmail.com'
 
 
@@ -152,3 +155,18 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+
