@@ -1,19 +1,73 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
-from .models import User
+
+from wallet.models import Wallet
+from notifications.models import Notification
+from chat.models import Message
+
+User = get_user_model()
 
 
+# Wallet Serializer
+class WalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = ['balance']
+
+
+# Notification Serializer
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'title', 'message', 'is_read', 'created_at']
+
+
+# Message Preview Serializer
+class MessagePreviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id', 'sender', 'recipient', 'content', 'timestamp', 'is_read']
+
+
+# User Serializer
 class UserSerializer(serializers.ModelSerializer):
+    wallet = WalletSerializer(read_only=True)
+    notifications = serializers.SerializerMethodField()
+    unread_messages = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'phone', 'is_freelancer', 'is_client', 'language_preference',
-                  'is_verified')
+        fields = [
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'phone',
+            'is_freelancer',
+            'is_client',
+            'language_preference',
+            'is_verified',
+            'wallet',
+            'notifications',
+            'unread_messages',
+        ]
+
+    def get_notifications(self, obj):
+        return Notification.objects.filter(user=obj, is_read=False).count()
+
+    def get_unread_messages(self, obj):
+        return Message.objects.filter(recipient=obj, is_read=False).count()
 
 
+# Register Serializer
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'phone', 'password', 'is_freelancer', 'is_client')
+        fields = (
+            'username', 'email', 'phone', 'password',
+            'is_freelancer', 'is_client'
+        )
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, data):
@@ -38,6 +92,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+
+# Login Serializer
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)

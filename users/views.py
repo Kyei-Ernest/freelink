@@ -1,9 +1,12 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, UserSerializer, LoginSerializer
 from rest_framework.authtoken.models import Token
 from .models import User
+from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
+from wallet.models import Wallet
+from notifications.models import Notification
+from chat.models import Message
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -18,6 +21,11 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+    def get(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -26,7 +34,8 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
         token, created = Token.objects.get_or_create(user=user)
-        return Response({"token": token.key, "user_id": user.id})
+        user_data = UserSerializer(user).data
+        return Response({"token": token.key, "user": user_data})
 
 class LogoutView(APIView):
     def post(self, request):
