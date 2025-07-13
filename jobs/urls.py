@@ -8,5 +8,5 @@ urlpatterns = [
     path('<int:pk>/apply/', ApplyToJobView.as_view(), name='apply-job'),
     path('applications/', ClientJobApplicationsView.as_view(), name='client-job-applications'),
     path('applications/<int:pk>/select/', SelectFreelancerView.as_view(), name='select-freelancer'),
-    path('<int:pk>/complete/', CompleteJobView.as_view(), name='complete-job'),
+    path('<int:pk>/job_status/', CompleteJobView.as_view(), name='complete-job'),
     ]

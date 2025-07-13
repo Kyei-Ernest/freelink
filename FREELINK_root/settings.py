@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'chat',
     'escrow',
     'wallet',
+    'dashboard',
 ]
 
 MIDDLEWARE = [

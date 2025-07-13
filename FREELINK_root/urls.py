@@ -16,6 +16,8 @@ urlpatterns = [
     path('api/chat/', include('chat.urls')),
     path('api/escrow/', include('escrow.urls')),
     path('api/wallet/', include('wallet.urls')),
+    path('api/dashboard/', include('dashboard.urls')),
+
 ]
 
 

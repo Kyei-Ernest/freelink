@@ -16,5 +16,5 @@ class JobApplicationSerializer(serializers.ModelSerializer):
 class JobCompletionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
-        fields = ['is_completed']
-        read_only_fields = ['id']
+        fields = ['status']
+        read_only_fields = ['status']

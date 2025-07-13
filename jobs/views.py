@@ -42,6 +42,7 @@ class ClientJobApplicationsView(generics.ListAPIView):
 class SelectFreelancerView(generics.UpdateAPIView):
     serializer_class = JobApplicationSerializer
     queryset = JobApplication.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def patch(self, request, *args, **kwargs):
         application = self.get_object()
@@ -54,15 +55,16 @@ class SelectFreelancerView(generics.UpdateAPIView):
         application.job.save()
         return Response({"message": "Freelancer selected."})
 
-class CompleteJobView(generics.UpdateAPIView):
+class CompleteJobView(generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobCompletionSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    def patch(self, request, *args, **kwargs):
+    def patch(self, request):
         job = self.get_object()
         if request.user != job.client:
             return Response({"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN)
-        job.is_completed = True
+        job.status = 'completed'
         job.save()
         return Response({"message": "Job marked as completed."})
 
