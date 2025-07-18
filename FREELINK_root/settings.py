@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'jobs',
     'transactions',
     'ratings',
-    'campus',
     'notifications',
     'escrow',
     'wallet',
@@ -63,6 +62,14 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day',
+    },
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
@@ -105,7 +112,7 @@ DATABASES = {
     }
 }
 
-
+# Email settings (example for Gmail)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -114,6 +121,13 @@ EMAIL_HOST_USER = 'kookyei44@gmail.com'
 EMAIL_HOST_PASSWORD = 'pass'
 DEFAULT_FROM_EMAIL = 'Freelink Ghana kookyei44@gmail.com'
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

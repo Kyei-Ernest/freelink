@@ -11,7 +11,6 @@ urlpatterns = [
     path('api/jobs/', include('jobs.urls')),
     path('api/transactions/', include('transactions.urls')),
     path('api/ratings/', include('ratings.urls')),
-    path('api/campus/', include('campus.urls')),
     path('api/notifications/', include('notifications.urls')),
     path('api/escrow/', include('escrow.urls')),
     path('api/wallet/', include('wallet.urls')),

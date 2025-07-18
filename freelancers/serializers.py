@@ -1,26 +1,10 @@
 from rest_framework import serializers
-from .models import FreelancerProfile, Skill
+from .models import FreelancerProfile
 
-class SkillSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Skill
-        fields = ['id', 'name']
 
 class FreelancerProfileSerializer(serializers.ModelSerializer):
-    skills = SkillSerializer(many=True, read_only=True)
-
     class Meta:
         model = FreelancerProfile
-        fields = ['bio', 'skills', 'campus_verified']
+        fields = ['bio', 'skills', 'hourly_rate', 'portfolio_url', 'availability']
+        read_only_fields = ['user']
 
-class FreelancerProfileUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FreelancerProfile
-        fields = ['bio', 'skills', 'student_id_card']
-
-    def update(self, instance, validated_data):
-        skills_data = validated_data.pop('skills', None)
-        instance = super().update(instance, validated_data)
-        if skills_data is not None:
-            instance.skills.set(skills_data)
-        return instance

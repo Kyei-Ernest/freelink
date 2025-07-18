@@ -10,6 +10,7 @@ from django.core.cache import cache  # For storing verification codes temporaril
 from wallet.models import Wallet
 from notifications.models import Notification
 
+
 User = get_user_model()
 
 class WalletSerializer(serializers.ModelSerializer):
@@ -27,21 +28,16 @@ class VerifyEmailSerializer(serializers.Serializer):
     uidb64 = serializers.CharField(required=True, write_only=True)
 
     def validate(self, data):
-        # Validate token and user
         try:
             uid = force_str(urlsafe_base64_decode(data['uidb64']))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             raise serializers.ValidationError({'uidb64': 'Invalid user ID'})
-
         token_generator = PasswordResetTokenGenerator()
         if not token_generator.check_token(user, data['token']):
             raise serializers.ValidationError({'token': 'Invalid or expired token'})
-
-        # Check if user is already verified
         if user.is_verified:
             raise serializers.ValidationError({'error': 'Email is already verified'})
-
         return data
 
 class UserSerializer(serializers.ModelSerializer):
@@ -171,14 +167,9 @@ class VerifyPhoneSerializer(serializers.Serializer):
             user = User.objects.get(phone=data['phone'])
         except User.DoesNotExist:
             raise serializers.ValidationError({'phone': 'No user found with this phone number'})
-
-        # Check if user is already verified
         if user.is_verified:
             raise serializers.ValidationError({'phone': 'Phone number is already verified'})
-
-        # Verify the code
         cached_code = cache.get(f"phone_verification_{user.phone}")
         if not cached_code or cached_code != data['code']:
             raise serializers.ValidationError({'code': 'Invalid or expired verification code'})
-
         return data
