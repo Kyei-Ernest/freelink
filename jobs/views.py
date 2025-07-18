@@ -10,10 +10,22 @@ from .serializers import JobSerializer, JobApplicationSerializer
 
 from .serializers import JobCompletionSerializer
 
-class JobListCreateView(generics.ListCreateAPIView):
+
+# Separate JobList and JobCreate views
+class JobListView(generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+class JobCreateView(generics.CreateAPIView):
+    queryset = Job.objects.all()
+    serializer_class = JobSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_client:
+            return Response({"error": "Only clients can create jobs."}, status=status.HTTP_403_FORBIDDEN)
+        return super().post(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
@@ -23,7 +35,9 @@ class JobDetailView(generics.RetrieveAPIView):
     serializer_class = JobSerializer
     permission_classes = [permissions.AllowAny]
 
-class ApplyToJobView(generics.CreateAPIView):
+class ApplyToJobView(generics.ListCreateAPIView):
+    queryset = JobApplication.objects.all()
+    lookup_field = 'pk'
     serializer_class = JobApplicationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -37,7 +51,10 @@ class ClientJobApplicationsView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return JobApplication.objects.filter(job__client=self.request.user)
+        user = self.request.user
+        if not user.is_client:
+            return JobApplication.objects.none()
+        return JobApplication.objects.filter(job__client=user)
 
 class SelectFreelancerView(generics.UpdateAPIView):
     serializer_class = JobApplicationSerializer

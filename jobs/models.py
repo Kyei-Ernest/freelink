@@ -36,6 +36,18 @@ class JobApplication(models.Model):
     is_selected = models.BooleanField(default=False)
     applied_at = models.DateTimeField(auto_now_add=True)
     selected_at = models.DateTimeField(null=True, blank=True)
+    # Improvements
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("ACCEPTED", "Accepted"),
+        ("REJECTED", "Rejected"),
+        ("WITHDRAWN", "Withdrawn"),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    message = models.TextField(blank=True)  # Message from client to freelancer
+    is_active = models.BooleanField(default=True)
+    attachment = models.FileField(upload_to="job_app_attachments/", null=True, blank=True)
+    feedback = models.TextField(blank=True)  # Feedback from client after job completion
 
     def __str__(self):
         return f"{self.freelancer.username} - {self.job.title}"

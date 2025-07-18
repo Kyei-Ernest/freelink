@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import JobListCreateView, JobDetailView, ApplyToJobView, ClientJobApplicationsView, CompleteJobView
+from .views import JobListView, JobCreateView, JobDetailView, ApplyToJobView, ClientJobApplicationsView, CompleteJobView
 from .views import SelectFreelancerView
 
 urlpatterns = [
-    path('', JobListCreateView.as_view(), name='job-list-create'),
+    path('', JobListView.as_view(), name='job-list'),
+    path('create', JobCreateView.as_view(), name='job-create'),
     path('<int:pk>/', JobDetailView.as_view(), name='job-detail'),
     path('<int:pk>/apply/', ApplyToJobView.as_view(), name='apply-job'),
     path('applications/', ClientJobApplicationsView.as_view(), name='client-job-applications'),

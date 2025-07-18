@@ -1,35 +1,47 @@
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+
 from wallet.models import Wallet
 from notifications.models import Notification
-from chat.models import Message
 
 User = get_user_model()
 
-
-# Wallet Serializer
 class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
         fields = ['balance']
 
-
-# Notification Serializer
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ['id', 'title', 'message', 'is_read', 'created_at']
 
+class VerifyEmailSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True, write_only=True)
+    uidb64 = serializers.CharField(required=True, write_only=True)
 
-# Message Preview Serializer
-class MessagePreviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Message
-        fields = ['id', 'sender', 'recipient', 'content', 'timestamp', 'is_read']
+    def validate(self, data):
+        # Validate token and user
+        try:
+            uid = force_str(urlsafe_base64_decode(data['uidb64']))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise serializers.ValidationError({'uidb64': 'Invalid user ID'})
 
+        token_generator = PasswordResetTokenGenerator()
+        if not token_generator.check_token(user, data['token']):
+            raise serializers.ValidationError({'token': 'Invalid or expired token'})
 
-# User Serializer
+        # Check if user is already verified
+        if user.is_verified:
+            raise serializers.ValidationError({'error': 'Email is already verified'})
+
+        return data
+
 class UserSerializer(serializers.ModelSerializer):
     wallet = WalletSerializer(read_only=True)
     notifications = serializers.SerializerMethodField()
@@ -50,17 +62,15 @@ class UserSerializer(serializers.ModelSerializer):
             'is_verified',
             'wallet',
             'notifications',
-            'unread_messages',
+            #'unread_messages',
         ]
 
     def get_notifications(self, obj):
         return Notification.objects.filter(user=obj, is_read=False).count()
 
-    def get_unread_messages(self, obj):
-        return Message.objects.filter(recipient=obj, is_read=False).count()
+    """def get_unread_messages(self, obj):
+        return Message.objects.filter(recipient=obj, is_read=False).count()"""
 
-
-# Register Serializer
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -92,8 +102,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
-
-# Login Serializer
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
@@ -103,3 +111,51 @@ class LoginSerializer(serializers.Serializer):
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Invalid credentials")
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+    confirm_new_password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        # Check if new password matches old password
+        if data['old_password'] == data['new_password']:
+            raise serializers.ValidationError({'new_password': 'New password must be different from the old password'})
+
+        # Check if new password matches confirmation
+        if data['new_password'] != data['confirm_new_password']:
+            raise serializers.ValidationError({'confirm_new_password': 'New passwords do not match'})
+
+        # Check minimum password length
+        if len(data['new_password']) < 8:
+            raise serializers.ValidationError({'new_password': 'New password must be at least 8 characters long'})
+
+        return data
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True, write_only=True)
+    uidb64 = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+    confirm_new_password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        # Check if new passwords match
+        if data['new_password'] != data['confirm_new_password']:
+            raise serializers.ValidationError({'confirm_new_password': 'New passwords do not match'})
+
+        # Check minimum password length
+        if len(data['new_password']) < 8:
+            raise serializers.ValidationError({'new_password': 'New password must be at least 8 characters long'})
+
+        # Validate token and user
+        try:
+            uid = force_str(urlsafe_base64_decode(data['uidb64']))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise serializers.ValidationError({'uidb64': 'Invalid user ID'})
+
+        token_generator = PasswordResetTokenGenerator()
+        if not token_generator.check_token(user, data['token']):
+            raise serializers.ValidationError({'token': 'Invalid or expired token'})
+
+        return data

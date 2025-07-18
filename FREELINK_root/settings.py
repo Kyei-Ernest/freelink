@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'ratings',
     'campus',
     'notifications',
-    'chat',
     'escrow',
     'wallet',
     'dashboard',
