@@ -5,6 +5,8 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 
+from django.core.cache import cache  # For storing verification codes temporarily
+
 from wallet.models import Wallet
 from notifications.models import Notification
 
@@ -157,5 +159,26 @@ class ResetPasswordSerializer(serializers.Serializer):
         token_generator = PasswordResetTokenGenerator()
         if not token_generator.check_token(user, data['token']):
             raise serializers.ValidationError({'token': 'Invalid or expired token'})
+
+        return data
+
+class VerifyPhoneSerializer(serializers.Serializer):
+    phone = serializers.CharField(required=True, write_only=True)
+    code = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        try:
+            user = User.objects.get(phone=data['phone'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError({'phone': 'No user found with this phone number'})
+
+        # Check if user is already verified
+        if user.is_verified:
+            raise serializers.ValidationError({'phone': 'Phone number is already verified'})
+
+        # Verify the code
+        cached_code = cache.get(f"phone_verification_{user.phone}")
+        if not cached_code or cached_code != data['code']:
+            raise serializers.ValidationError({'code': 'Invalid or expired verification code'})
 
         return data

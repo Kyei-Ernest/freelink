@@ -5,12 +5,15 @@ from rest_framework.authtoken.models import Token
 from .models import User
 from .serializers import (UserSerializer, RegisterSerializer,
                           LoginSerializer, ChangePasswordSerializer,
-                          ResetPasswordSerializer, VerifyEmailSerializer)
+                          ResetPasswordSerializer, VerifyEmailSerializer,
+                          VerifyPhoneSerializer)
 from django.contrib.auth import update_session_auth_hash
 import logging
 
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
+
+from django.core.cache import cache  # For storing verification codes temporarily
 
 from wallet.models import Wallet
 from notifications.models import Notification
@@ -18,12 +21,10 @@ from notifications.models import Notification
 # Set up logging
 logger = logging.getLogger(__name__)
 
-
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
-
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
@@ -38,7 +39,6 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
-
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -50,20 +50,45 @@ class LoginView(APIView):
         user_data = UserSerializer(user).data
         return Response({"token": token.key, "user": user_data})
 
-
 class LogoutView(APIView):
     def post(self, request):
         request.user.auth_token.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 class VerifyPhoneView(APIView):
     def post(self, request):
-        user = request.user
-        user.is_verified = True
-        user.save()
-        return Response({"message": "Phone verified."})
+        serializer = VerifyPhoneSerializer(data=request.data)
 
+        if serializer.is_valid():
+            try:
+                user = User.objects.get(phone=serializer.validated_data['phone'])
+            except User.DoesNotExist:
+                return Response(
+                    {'error': 'No user found with this phone number'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Mark phone as verified
+            user.is_verified = True  # Or use a separate is_phone_verified field if preferred
+            user.save()
+
+            # Clear the verification code from cache
+            cache.delete(f"phone_verification_{user.phone}")
+
+            # Log the phone verification
+            logger.info(
+                f"Phone verified for user: {user.username} "
+                f"(Phone: {user.phone}, Role: {'Freelancer' if user.is_freelancer else 'Client'})"
+            )
+
+            return Response(
+                {
+                    'message': f"Phone verified successfully for {'freelancer' if user.is_freelancer else 'client'}"
+                },
+                status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyEmailView(APIView):
     def post(self, request):
@@ -97,7 +122,6 @@ class VerifyEmailView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
