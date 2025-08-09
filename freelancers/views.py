@@ -11,6 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class FreelancerProfileView(APIView):
+    serializer_class = FreelancerProfileSerializer
     permission_classes = [IsAuthenticated]
     throttle_classes = [UserRateThrottle]
 

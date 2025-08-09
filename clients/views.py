@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ClientProfileView(APIView):
+    serializer_class = ClientProfileSerializer
     permission_classes = [IsAuthenticated]
     throttle_classes = [UserRateThrottle]
 

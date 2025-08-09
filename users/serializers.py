@@ -43,7 +43,7 @@ class VerifyEmailSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     wallet = WalletSerializer(read_only=True)
     notifications = serializers.SerializerMethodField()
-    unread_messages = serializers.SerializerMethodField()
+    #unread_messages = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -129,6 +129,9 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError({'new_password': 'New password must be at least 8 characters long'})
 
         return data
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
 class ResetPasswordSerializer(serializers.Serializer):
     token = serializers.CharField(required=True, write_only=True)

@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from .serializers import (UserSerializer, RegisterSerializer,
                           LoginSerializer, ChangePasswordSerializer,
                           ResetPasswordSerializer, VerifyEmailSerializer,
-                          VerifyPhoneSerializer)
+                          VerifyPhoneSerializer, PasswordResetRequestSerializer)
 from django.contrib.auth import update_session_auth_hash
 from django.core.cache import cache  # For storing verification codes temporarily
 from rest_framework import throttling
@@ -25,6 +25,7 @@ from notifications.models import Notification
 from clients.models import ClientProfile
 from freelancers.models import FreelancerProfile
 
+from rest_framework import generics
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -51,6 +52,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
 
 class LoginView(APIView):
+    serializer_class = LoginSerializer
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -63,12 +65,14 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    #serializer_class = Logout
     def post(self, request):
         request.user.auth_token.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ChangePasswordView(APIView):
+    serializer_class = ChangePasswordSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -111,6 +115,7 @@ class IsNotAuthenticated(permissions.BasePermission):
 
 
 class ResetPasswordView(APIView):
+    serializer_class = ResetPasswordSerializer
     permission_classes = [IsNotAuthenticated]  # Only allow unauthenticated users
 
     def post(self, request):
@@ -211,32 +216,41 @@ class VerifyPhoneView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PasswordResetRequestView(APIView):
+class PasswordResetRequestView(generics.CreateAPIView):
     permission_classes = [IsNotAuthenticated]
     throttle_classes = [throttling.AnonRateThrottle]
+    serializer_class = PasswordResetRequestSerializer
 
-    def post(self, request):
-        email = request.data.get('email')
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
+            # Always respond the same for security reasons
             return Response(
                 {'message': 'If an account exists with this email, a reset link will be sent'},
                 status=status.HTTP_200_OK
             )
 
+        # Generate reset token
         token = PasswordResetTokenGenerator().make_token(user)
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         reset_url = f"{request.scheme}://{request.get_host()}/reset-password/?uidb64={uidb64}&token={token}"
 
+        # Send email
         send_mail(
             subject='Password Reset Request',
             message=f'Click the link to reset your password: {reset_url}',
-            from_email='from@example.com',
+            from_email='kookyei44@gmail.com',
             recipient_list=[user.email],
         )
 
         logger.info(f"Password reset link sent to {user.email} (Phone: {user.phone})")
+
         return Response(
             {'message': 'If an account exists with this email, a reset link will be sent'},
             status=status.HTTP_200_OK

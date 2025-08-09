@@ -3,6 +3,7 @@ from rest_framework.serializers import ModelSerializer, CharField, ValidationErr
 from .models import Transaction
 from wallet.models import Wallet
 
+
 class TransactionSerializer(ModelSerializer):
     client_username = serializers.CharField(source='client.username', read_only=True)
     freelancer_username = serializers.CharField(source='freelancer.username', read_only=True)
@@ -26,6 +27,8 @@ class TransactionStatusSerializer(ModelSerializer):
         return value
 
     def validate(self, data):
+        from escrow.models import Escrow
+
         transaction = self.instance
         client_profile = transaction.client.client_profile
         budget_range = client_profile.budget_range
@@ -36,4 +39,12 @@ class TransactionStatusSerializer(ModelSerializer):
             raise ValidationError(f"Transaction amount {amount} exceeds client's MEDIUM budget range ($5,001 - $20,000)")
         if transaction.status in ['COMPLETED', 'REFUNDED'] and data['status'] in ['PENDING', 'FAILED']:
             raise ValidationError(f"Cannot change status from {transaction.status} to {data['status']}")
+        # Check for open disputes
+        if data['status'] in ['COMPLETED', 'REFUNDED']:
+            try:
+                escrow = transaction.escrow
+                if escrow.disputes.filter(status='OPEN').exists():
+                    raise ValidationError("Cannot update transaction status while an open dispute exists.")
+            except Escrow.DoesNotExist:
+                raise ValidationError("Escrow not found for this transaction.")
         return data
