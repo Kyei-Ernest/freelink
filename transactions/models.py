@@ -3,6 +3,8 @@ from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from clients.models import ClientProfile
+from wallet.models import Wallet
+
 
 User = get_user_model()
 
@@ -61,15 +63,31 @@ class Transaction(models.Model):
             raise ValidationError("Client must have a profile.")
         if not hasattr(self.freelancer, 'freelancer_profile'):
             raise ValidationError("Freelancer must have a profile.")
-        # Validate amount against budget_range
         budget_range = self.client.client_profile.budget_range
         if budget_range == 'LOW' and self.amount > 5000:
             raise ValidationError(f"Transaction amount {self.amount} exceeds client's LOW budget range ($0 - $5,000)")
         elif budget_range == 'MEDIUM' and self.amount > 20000:
             raise ValidationError(f"Transaction amount {self.amount} exceeds client's MEDIUM budget range ($5,001 - $20,000)")
-        # Check client wallet balance
         if hasattr(self.client, 'wallet') and self.amount > self.client.wallet.balance:
             raise ValidationError("Insufficient funds in client's wallet.")
+
+    def save(self, *args, **kwargs):
+        from escrow.models import Escrow
+        # Create escrow when transaction is created
+        if not self.pk and self.status == 'PENDING':
+            super().save(*args, **kwargs)  # Save transaction first to get ID
+            try:
+                client_wallet = self.client.wallet
+                if client_wallet.balance < self.amount:
+                    raise ValidationError("Insufficient funds in client's wallet.")
+                client_wallet.withdraw(self.amount)
+                Escrow.objects.create(transaction=self, amount=self.amount)
+            except Wallet.DoesNotExist:
+                raise ValidationError("Client must have a wallet.")
+            except ValidationError as e:
+                raise ValidationError(str(e))
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Transaction of {self.amount} from {self.client.username} to {self.freelancer.username} ({self.status})"

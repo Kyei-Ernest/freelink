@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from .models import Escrow
 
+
 class EscrowSerializer(serializers.ModelSerializer):
+    transaction_id = serializers.IntegerField(source='transaction.id', read_only=True)
+
     class Meta:
         model = Escrow
-        fields = '__all__'
-        read_only_fields = ['client', 'freelancer', 'is_released', 'created_at', 'released_at', 'disputed']
+        fields = ['transaction_id', 'amount', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['transaction_id', 'amount', 'created_at', 'updated_at']

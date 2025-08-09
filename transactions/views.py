@@ -11,6 +11,7 @@ import logging
 from .serializers import TransactionSerializer, TransactionStatusSerializer
 
 from wallet.models import Wallet
+from escrow.models import Escrow
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -95,20 +96,22 @@ class UpdateTransactionStatusView(APIView):
 
         serializer = TransactionStatusSerializer(transaction, data=request.data, partial=True)
         if serializer.is_valid():
-            # Update wallet balances if status changes to COMPLETED
-            if serializer.validated_data['status'] == 'COMPLETED' and transaction.status != 'COMPLETED':
-                try:
-                    client_wallet = transaction.client.wallet
-                    freelancer_wallet = transaction.freelancer.wallet
-                    if client_wallet.balance < transaction.amount:
-                        raise ValidationError("Insufficient funds in client's wallet.")
-                    client_wallet.withdraw(transaction.amount)
-                    freelancer_wallet.deposit(transaction.amount)
-                except Wallet.DoesNotExist:
-                    return Response(
-                        {'error': 'Both client and freelancer must have wallets'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+            try:
+                escrow = transaction.escrow
+                if serializer.validated_data['status'] == 'COMPLETED' and transaction.status != 'COMPLETED':
+                    escrow.release()
+                elif serializer.validated_data['status'] == 'REFUNDED' and transaction.status != 'REFUNDED':
+                    escrow.refund()
+            except Escrow.DoesNotExist:
+                return Response(
+                    {'error': 'Escrow not found for this transaction'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            except ValidationError as e:
+                return Response(
+                    {'error': str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             serializer.save()
             logger.info(
@@ -117,4 +120,3 @@ class UpdateTransactionStatusView(APIView):
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

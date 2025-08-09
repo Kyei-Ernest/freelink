@@ -1,62 +1,49 @@
-from rest_framework import generics, status, serializers
+from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status, serializers
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import UserRateThrottle
 from .models import Escrow
-from .serializers import EscrowSerializer
-from wallet.models import Wallet
-from django.utils import timezone
-from notifications.utils import send_email_notification
+import logging
 
-class CreateEscrowView(generics.CreateAPIView):
-    serializer_class = EscrowSerializer
+from transactions.models import Transaction
+
+logger = logging.getLogger(__name__)
+
+
+
+class EscrowView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle]
 
-
-
-        # Prevent duplicate escrow
-
-
-    def perform_create(self, serializer):
-        job = serializer.validated_data['job']
-        if Escrow.objects.filter(job=job).exists():
-            raise serializers.ValidationError("Escrow for this job already exists.")
-        amount = serializer.validated_data['amount']
-        freelancer = serializer.validated_data['freelancer']
-
-        client_wallet = Wallet.objects.get(user=self.request.user)
-        if client_wallet.balance < amount:
-            raise serializers.ValidationError("Insufficient balance to fund escrow.")
-
-        client_wallet.balance -= amount
-        client_wallet.save()
-
-        escrow = serializer.save(client=self.request.user, freelancer=freelancer)
-
-        # Notify client and freelancer
-        send_email_notification("Escrow Created", f"Escrow for job '{job.title}' has been funded.", [self.request.user.email, freelancer.email])
-
-class ReleaseEscrowView(generics.UpdateAPIView):
-    queryset = Escrow.objects.all()
-    serializer_class = EscrowSerializer
-    permission_classes = [IsAuthenticated]
-
-    def patch(self, request, *args, **kwargs):
-        escrow = self.get_object()
-        if escrow.client != request.user:
-            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
-
-        if escrow.is_released:
-            return Response({"error": "Escrow already released"}, status=status.HTTP_400_BAD_REQUEST)
-
-        freelancer_wallet = Wallet.objects.get(user=escrow.freelancer)
-        freelancer_wallet.balance += escrow.amount
-        freelancer_wallet.save()
-
-        escrow.is_released = True
-        escrow.released_at = timezone.now()
-        escrow.save()
-
-        # Notify freelancer of release
-        send_email_notification("Escrow Released", f"Payment for job '{escrow.job.title}' has been released.", [escrow.freelancer.email])
-
-        return Response({"message": "Escrow released to freelancer."})
+    def get(self, request, transaction_id):
+        if not (request.user.is_client or request.user.is_freelancer or request.user.is_staff):
+            return Response(
+                {'error': 'Only clients, freelancers, or admins can access escrow details'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if not request.user.is_verified:
+            return Response(
+                {'error': 'Account must be verified to access escrow'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            transaction = Transaction.objects.get(id=transaction_id)
+            if request.user != transaction.client and request.user != transaction.freelancer and not request.user.is_staff:
+                return Response(
+                    {'error': 'You are not authorized to view this escrow'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            escrow = transaction.escrow
+            serializer = EscrowSerializer(escrow)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Transaction.DoesNotExist:
+            return Response(
+                {'error': 'Transaction not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Escrow.DoesNotExist:
+            return Response(
+                {'error': 'Escrow not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
