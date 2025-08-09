@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Freelink
   version: 1.0.0
-  description: API for freelancers
+  description: API for freelancer system
 paths:
   /api/clients/profile/:
     get:

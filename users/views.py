@@ -1,3 +1,4 @@
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -9,7 +10,7 @@ from rest_framework.authtoken.models import Token
 from .serializers import (UserSerializer, RegisterSerializer,
                           LoginSerializer, ChangePasswordSerializer,
                           ResetPasswordSerializer, VerifyEmailSerializer,
-                          VerifyPhoneSerializer, PasswordResetRequestSerializer)
+                          VerifyPhoneSerializer, PasswordResetRequestSerializer, EmptySerializer)
 from django.contrib.auth import update_session_auth_hash
 from django.core.cache import cache  # For storing verification codes temporarily
 from rest_framework import throttling
@@ -64,8 +65,10 @@ class LoginView(APIView):
         return Response({"token": token.key, "user": user_data})
 
 
-class LogoutView(APIView):
-    #serializer_class = Logout
+class LogoutView(generics.GenericAPIView):
+    serializer_class = EmptySerializer
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         request.user.auth_token.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

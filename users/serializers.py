@@ -176,3 +176,9 @@ class VerifyPhoneSerializer(serializers.Serializer):
         if not cached_code or cached_code != data['code']:
             raise serializers.ValidationError({'code': 'Invalid or expired verification code'})
         return data
+
+
+class EmptySerializer(serializers.Serializer):
+    """Serializer for endpoints that don't require input."""
+    pass
+
