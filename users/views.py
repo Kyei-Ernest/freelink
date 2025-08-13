@@ -10,7 +10,8 @@ from rest_framework.authtoken.models import Token
 from .serializers import (UserSerializer, RegisterSerializer,
                           LoginSerializer, ChangePasswordSerializer,
                           ResetPasswordSerializer, VerifyEmailSerializer,
-                          VerifyPhoneSerializer, PasswordResetRequestSerializer, EmptySerializer)
+                          VerifyPhoneSerializer, PasswordResetRequestSerializer, EmptySerializer,
+                          SendVerificationEmailSerializer)
 from django.contrib.auth import update_session_auth_hash
 from django.core.cache import cache  # For storing verification codes temporarily
 from rest_framework import throttling
@@ -154,6 +155,7 @@ class ResetPasswordView(APIView):
 
 
 class VerifyEmailView(APIView):
+    serializer_class = VerifyEmailSerializer
     permission_classes = [IsNotAuthenticated]
     throttle_classes = [throttling.AnonRateThrottle]
 
@@ -187,6 +189,7 @@ class VerifyEmailView(APIView):
 
 
 class VerifyPhoneView(APIView):
+    serializer_class = VerifyPhoneSerializer
     permission_classes = [IsNotAuthenticated]
     throttle_classes = [throttling.AnonRateThrottle]
 
@@ -261,6 +264,7 @@ class PasswordResetRequestView(generics.CreateAPIView):
 
 
 class SendVerificationEmailView(APIView):
+    serializer_class = SendVerificationEmailSerializer
     permission_classes = [IsNotAuthenticated]
     throttle_classes = [throttling.AnonRateThrottle]
 
@@ -281,7 +285,7 @@ class SendVerificationEmailView(APIView):
         send_mail(
             subject='Verify Your Email',
             message=f'Click the link to verify your email: {verify_url}',
-            from_email='from@example.com',
+            from_email='kookyei44@gmail.com',
             recipient_list=[user.email],
         )
 

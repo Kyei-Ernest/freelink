@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'escrow',
     'wallet',
     'dashboard',
+    'chat',
     'drf_spectacular',
     'drf_spectacular_sidecar',
 ]

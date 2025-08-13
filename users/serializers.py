@@ -177,6 +177,8 @@ class VerifyPhoneSerializer(serializers.Serializer):
             raise serializers.ValidationError({'code': 'Invalid or expired verification code'})
         return data
 
+class SendVerificationEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
 class EmptySerializer(serializers.Serializer):
     """Serializer for endpoints that don't require input."""

@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class WalletView(APIView):
+    serializer_class = WalletSerializer
     permission_classes = [IsAuthenticated]
     throttle_classes = [UserRateThrottle]
 

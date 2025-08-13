@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Freelink
   version: 1.0.0
-  description: API for freelancer system
+  description: API for freelancers
 paths:
   /api/clients/profile/:
     get:
@@ -840,34 +840,82 @@ paths:
       operationId: api_users_send_verification_email_create
       tags:
       - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendVerificationEmail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendVerificationEmail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SendVerificationEmail'
+        required: true
       security:
       - cookieAuth: []
       - tokenAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendVerificationEmail'
+          description: ''
   /api/users/verify-email/:
     post:
       operationId: api_users_verify_email_create
       tags:
       - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyEmail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyEmail'
+        required: true
       security:
       - cookieAuth: []
       - tokenAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyEmail'
+          description: ''
   /api/users/verify-phone/:
     post:
       operationId: api_users_verify_phone_create
       tags:
       - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyPhone'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyPhone'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyPhone'
+        required: true
       security:
       - cookieAuth: []
       - tokenAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyPhone'
+          description: ''
   /api/wallet/wallet/:
     get:
       operationId: api_wallet_wallet_retrieve
@@ -878,27 +926,61 @@ paths:
       - tokenAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+          description: ''
     post:
       operationId: api_wallet_wallet_create
       tags:
       - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wallet'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Wallet'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Wallet'
       security:
       - cookieAuth: []
       - tokenAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+          description: ''
     put:
       operationId: api_wallet_wallet_update
       tags:
       - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wallet'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Wallet'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Wallet'
       security:
       - cookieAuth: []
       - tokenAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+          description: ''
 components:
   schemas:
     AvailabilityEnum:
@@ -1388,6 +1470,14 @@ components:
       - new_password
       - token
       - uidb64
+    SendVerificationEmail:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
     Status911Enum:
       enum:
       - PENDING
@@ -1530,6 +1620,30 @@ components:
       - phone
       - username
       - wallet
+    VerifyEmail:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+        uidb64:
+          type: string
+          writeOnly: true
+      required:
+      - token
+      - uidb64
+    VerifyPhone:
+      type: object
+      properties:
+        phone:
+          type: string
+          writeOnly: true
+        code:
+          type: string
+          writeOnly: true
+      required:
+      - code
+      - phone
     Wallet:
       type: object
       properties:

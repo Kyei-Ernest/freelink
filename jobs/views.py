@@ -11,7 +11,6 @@ from .serializers import JobSerializer, JobApplicationSerializer
 from .serializers import JobCompletionSerializer
 
 
-# Separate JobList and JobCreate views
 class JobListView(generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
