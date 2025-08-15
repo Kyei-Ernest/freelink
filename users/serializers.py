@@ -13,16 +13,16 @@ from notifications.models import Notification
 
 User = get_user_model()
 
-class WalletSerializer(serializers.ModelSerializer):
+"""class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
         fields = ['balance']
-
-class NotificationSerializer(serializers.ModelSerializer):
+"""
+"""class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ['id', 'title', 'message', 'is_read', 'created_at']
-
+"""
 class VerifyEmailSerializer(serializers.Serializer):
     token = serializers.CharField(required=True, write_only=True)
     uidb64 = serializers.CharField(required=True, write_only=True)
@@ -38,11 +38,14 @@ class VerifyEmailSerializer(serializers.Serializer):
             raise serializers.ValidationError({'token': 'Invalid or expired token'})
         if user.is_verified:
             raise serializers.ValidationError({'error': 'Email is already verified'})
+        
+        data['user'] = user
+
         return data
 
 class UserSerializer(serializers.ModelSerializer):
-    wallet = WalletSerializer(read_only=True)
-    notifications = serializers.SerializerMethodField()
+   # wallet = WalletSerializer(read_only=True)
+   # notifications = serializers.SerializerMethodField()
     #unread_messages = serializers.SerializerMethodField()
 
     class Meta:
@@ -58,8 +61,8 @@ class UserSerializer(serializers.ModelSerializer):
             'is_client',
             'language_preference',
             'is_verified',
-            'wallet',
-            'notifications',
+            #'wallet',
+            #'notifications',
             #'unread_messages',
         ]
 
@@ -69,29 +72,41 @@ class UserSerializer(serializers.ModelSerializer):
     """def get_unread_messages(self, obj):
         return Message.objects.filter(recipient=obj, is_read=False).count()"""
 
+
 class RegisterSerializer(serializers.ModelSerializer):
+    password_confirm = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'phone', 'password',
+            'full_name', 'email', 'phone', 'password', 'password_confirm',
             'is_freelancer', 'is_client'
         )
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True},
+            'full_name': {'required': True},
+            'phone': {'required': True}
+        }
 
     def validate(self, data):
-        is_freelancer = data.get('is_freelancer', False)
-        is_client = data.get('is_client', False)
+        # Password confirmation check
+        if data['password'] != data['password_confirm']:
+            raise serializers.ValidationError({"password_confirm": "Passwords do not match."})
 
-        if is_freelancer and is_client:
+        # Role validation
+        if data.get('is_freelancer') and data.get('is_client'):
             raise serializers.ValidationError("A user cannot be both a freelancer and a client.")
-        if not is_freelancer and not is_client:
+        if not data.get('is_freelancer') and not data.get('is_client'):
             raise serializers.ValidationError("User must be either a freelancer or a client.")
 
         return data
 
     def create(self, validated_data):
+        validated_data.pop('password_confirm')  # Remove confirm field before saving
+
         user = User.objects.create_user(
-            username=validated_data['username'],
+            full_name=validated_data['full_name'],
             email=validated_data['email'],
             phone=validated_data['phone'],
             password=validated_data['password'],

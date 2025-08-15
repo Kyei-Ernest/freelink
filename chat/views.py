@@ -37,7 +37,6 @@ from rest_framework import generics, permissions
 from django.db.models import Q
 from .models import Message
 from .serializers import MessageSerializer
-from rest_framework.response import Response
 
 class MessageDetailView(generics.ListAPIView):
     """List all messages between the logged-in user and the given username.

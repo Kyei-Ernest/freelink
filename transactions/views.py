@@ -6,7 +6,7 @@ from rest_framework.serializers import ModelSerializer, ValidationError
 from rest_framework.throttling import UserRateThrottle
 from django.db import models
 from .models import Transaction
-from clients.models import ClientProfile
+from profiles.models import Profile
 from wallet.models import Wallet
 from escrow.models import Escrow, EscrowDispute
 import logging
@@ -81,7 +81,7 @@ class TransactionView(APIView):
     def get(self, request):
         if not (request.user.is_client or request.user.is_freelancer):
             return Response(
-                {'error': 'Only clients or freelancers can access transactions'},
+                {'error': 'Only profiles or freelancers can access transactions'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:
@@ -98,7 +98,7 @@ class TransactionView(APIView):
     def post(self, request):
         if not request.user.is_client:
             return Response(
-                {'error': 'Only clients can create transactions'},
+                {'error': 'Only profiles can create transactions'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:

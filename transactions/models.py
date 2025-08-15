@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from clients.models import ClientProfile
+from profiles.models import Profile
 from wallet.models import Wallet
 
 

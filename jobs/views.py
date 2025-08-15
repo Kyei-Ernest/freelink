@@ -23,7 +23,7 @@ class JobCreateView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_client:
-            return Response({"error": "Only clients can create jobs."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "Only profiles can create jobs."}, status=status.HTTP_403_FORBIDDEN)
         return super().post(request, *args, **kwargs)
 
     def perform_create(self, serializer):

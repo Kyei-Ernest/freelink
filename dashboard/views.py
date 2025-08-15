@@ -20,7 +20,7 @@ class DashboardView(APIView):
     def get(self, request):
         if not (request.user.is_client or request.user.is_freelancer):
             return Response(
-                {'error': 'Only clients or freelancers can access their dashboard'},
+                {'error': 'Only profiles or freelancers can access their dashboard'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:
@@ -43,7 +43,7 @@ class DashboardView(APIView):
     def post(self, request):
         if not (request.user.is_client or request.user.is_freelancer):
             return Response(
-                {'error': 'Only clients or freelancers can create a dashboard'},
+                {'error': 'Only profiles or freelancers can create a dashboard'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:
@@ -69,7 +69,7 @@ class DashboardView(APIView):
     def put(self, request):
         if not (request.user.is_client or request.user.is_freelancer):
             return Response(
-                {'error': 'Only clients or freelancers can update their dashboard'},
+                {'error': 'Only profiles or freelancers can update their dashboard'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:

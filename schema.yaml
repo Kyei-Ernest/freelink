@@ -4,9 +4,10 @@ info:
   version: 1.0.0
   description: API for freelancers
 paths:
-  /api/clients/profile/:
+  /api/chat/inbox/:
     get:
-      operationId: api_clients_profile_retrieve
+      operationId: api_chat_inbox_list
+      description: API endpoint to list all messages received by the logged-in user.
       tags:
       - api
       security:
@@ -17,48 +18,73 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClientProfile'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
           description: ''
+  /api/chat/message/{username}/:
+    get:
+      operationId: api_chat_message_list
+      description: |-
+        List all messages between the logged-in user and the given username.
+        Marks as read if recipient is current viewer.
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+          description: ''
+  /api/chat/send/:
     post:
-      operationId: api_clients_profile_create
+      operationId: api_chat_send_create
+      description: |-
+        API endpoint to send a new message.
+        The sender is always the current logged-in user.
+        The recipient username is provided manually in the request.
       tags:
       - api
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClientProfile'
+              $ref: '#/components/schemas/Message'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ClientProfile'
+              $ref: '#/components/schemas/Message'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ClientProfile'
+              $ref: '#/components/schemas/Message'
+        required: true
       security:
       - cookieAuth: []
       - tokenAuth: []
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClientProfile'
+                $ref: '#/components/schemas/Message'
           description: ''
-    put:
-      operationId: api_clients_profile_update
+  /api/chat/sent/:
+    get:
+      operationId: api_chat_sent_list
+      description: API endpoint to list all messages sent by the logged-in user.
       tags:
       - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ClientProfile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ClientProfile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ClientProfile'
       security:
       - cookieAuth: []
       - tokenAuth: []
@@ -67,7 +93,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClientProfile'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
           description: ''
   /api/dashboard/:
     get:
@@ -154,71 +182,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Escrow'
-          description: ''
-  /api/freelancers/profile/:
-    get:
-      operationId: api_freelancers_profile_retrieve
-      tags:
-      - api
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FreelancerProfile'
-          description: ''
-    post:
-      operationId: api_freelancers_profile_create
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FreelancerProfile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/FreelancerProfile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/FreelancerProfile'
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FreelancerProfile'
-          description: ''
-    put:
-      operationId: api_freelancers_profile_update
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FreelancerProfile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/FreelancerProfile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/FreelancerProfile'
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FreelancerProfile'
           description: ''
   /api/jobs/:
     get:
@@ -492,6 +455,98 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/profiles/{username}/:
+    get:
+      operationId: api_profiles_retrieve
+      description: GET /profile/<username>/ → View a public profile
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicProfile'
+          description: ''
+  /api/profiles/me/:
+    get:
+      operationId: api_profiles_me_retrieve
+      description: GET /profile/me/ → View your own profile
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+  /api/profiles/me/update/:
+    put:
+      operationId: api_profiles_me_update_update
+      description: PATCH /profile/me/update/ → Update your own profile
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileUpdate'
+          description: ''
+    patch:
+      operationId: api_profiles_me_update_partial_update
+      description: PATCH /profile/me/update/ → Update your own profile
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdate'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileUpdate'
           description: ''
   /api/ratings/{user_id}/:
     get:
@@ -983,26 +1038,6 @@ paths:
           description: ''
 components:
   schemas:
-    AvailabilityEnum:
-      enum:
-      - FULL_TIME
-      - PART_TIME
-      - NOT_AVAILABLE
-      type: string
-      description: |-
-        * `FULL_TIME` - Full Time
-        * `PART_TIME` - Part Time
-        * `NOT_AVAILABLE` - Not Available
-    BudgetRangeEnum:
-      enum:
-      - LOW
-      - MEDIUM
-      - HIGH
-      type: string
-      description: |-
-        * `LOW` - ₵0 - ₵5,000
-        * `MEDIUM` - ₵5,001 - ₵20,000
-        * `HIGH` - ₵20,001+
     ChangePassword:
       type: object
       properties:
@@ -1019,40 +1054,6 @@ components:
       - confirm_new_password
       - new_password
       - old_password
-    ClientProfile:
-      type: object
-      properties:
-        company_name:
-          type: string
-          description: Name of the client's company or organization
-          maxLength: 100
-        industry:
-          type: string
-          description: Industry or sector (e.g., Technology, Healthcare)
-          maxLength: 100
-        project_types:
-          type: string
-          description: Preferred project types (e.g., Web Development, Mobile Apps)
-          maxLength: 200
-        budget_range:
-          allOf:
-          - $ref: '#/components/schemas/BudgetRangeEnum'
-          description: |-
-            Typical project budget range
-
-            * `LOW` - ₵0 - ₵5,000
-            * `MEDIUM` - ₵5,001 - ₵20,000
-            * `HIGH` - ₵20,001+
-        preferred_communication:
-          allOf:
-          - $ref: '#/components/schemas/PreferredCommunicationEnum'
-          description: |-
-            Preferred communication method
-
-            * `EMAIL` - Email
-            * `PHONE` - Phone
-            * `VIDEO_CALL` - Video Call
-            * `CHAT` - Chat
     Dashboard:
       type: object
       properties:
@@ -1061,7 +1062,7 @@ components:
             [''wallet'', ''transactions'']})'
         cached_metrics:
           description: 'Cached metrics (e.g., {''total_earnings'': 5000, ''pending_transactions'':
-            2})'
+            2, ''unread_messages'': 1})'
         created_at:
           type: string
           format: date-time
@@ -1120,38 +1121,6 @@ components:
         * `RELEASED` - Released
         * `REFUNDED` - Refunded
         * `DISPUTED` - Disputed
-    FreelancerProfile:
-      type: object
-      properties:
-        bio:
-          type: string
-          description: A short description of the freelancer
-          maxLength: 1000
-        skills:
-          type: string
-          description: Comma-separated list of skills (e.g., Python, Django, JavaScript)
-          maxLength: 500
-        hourly_rate:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-          nullable: true
-          description: Hourly rate in USD
-        portfolio_url:
-          type: string
-          format: uri
-          nullable: true
-          description: Link to portfolio or personal website
-          maxLength: 200
-        availability:
-          allOf:
-          - $ref: '#/components/schemas/AvailabilityEnum'
-          description: |-
-            Current availability status
-
-            * `FULL_TIME` - Full Time
-            * `PART_TIME` - Part Time
-            * `NOT_AVAILABLE` - Not Available
     Job:
       type: object
       properties:
@@ -1262,6 +1231,43 @@ components:
       required:
       - password
       - username
+    Message:
+      type: object
+      description: Serializer for displaying and sending messages.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sender:
+          type: string
+          readOnly: true
+        recipient:
+          type: string
+          description: Username of the recipient
+        content:
+          type: string
+          description: Message content
+          maxLength: 2000
+        is_read:
+          type: boolean
+          readOnly: true
+          description: Whether the recipient has read the message
+        is_received:
+          type: boolean
+          readOnly: true
+          description: Whether the message has been received by the server
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - id
+      - is_read
+      - is_received
+      - recipient
+      - sender
     Notification:
       type: object
       properties:
@@ -1336,6 +1342,30 @@ components:
           allOf:
           - $ref: '#/components/schemas/StatusE8dEnum'
           readOnly: true
+    PatchedProfileUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+        language_preference:
+          type: string
+        bio:
+          type: string
+        skills: {}
+        location:
+          type: string
+          maxLength: 255
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
     PatchedUser:
       type: object
       properties:
@@ -1344,14 +1374,11 @@ components:
           readOnly: true
         username:
           type: string
-          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-            only.
-          pattern: ^[\w.@+-]+$
-          maxLength: 150
+          readOnly: true
         email:
           type: string
           format: email
-          title: Email address
+          title: Email Address
           maxLength: 254
         first_name:
           type: string
@@ -1361,6 +1388,7 @@ components:
           maxLength: 150
         phone:
           type: string
+          title: Phone Number
           maxLength: 20
         is_freelancer:
           type: boolean
@@ -1378,18 +1406,137 @@ components:
         notifications:
           type: string
           readOnly: true
-    PreferredCommunicationEnum:
-      enum:
-      - EMAIL
-      - PHONE
-      - VIDEO_CALL
-      - CHAT
-      type: string
-      description: |-
-        * `EMAIL` - Email
-        * `PHONE` - Phone
-        * `VIDEO_CALL` - Video Call
-        * `CHAT` - Chat
+    Profile:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: Email Address
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        phone:
+          type: string
+          title: Phone Number
+          readOnly: true
+        language_preference:
+          type: string
+          readOnly: true
+        is_freelancer:
+          type: boolean
+          readOnly: true
+        is_client:
+          type: boolean
+          readOnly: true
+        bio:
+          type: string
+          readOnly: true
+        skills:
+          readOnly: true
+        location:
+          type: string
+          readOnly: true
+        website:
+          type: string
+          format: uri
+          readOnly: true
+          nullable: true
+        profile_picture:
+          type: string
+          format: uri
+          readOnly: true
+          nullable: true
+        is_verified:
+          type: boolean
+          readOnly: true
+        is_phone_verified:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - bio
+      - created_at
+      - email
+      - full_name
+      - is_client
+      - is_freelancer
+      - is_phone_verified
+      - is_verified
+      - language_preference
+      - location
+      - phone
+      - profile_picture
+      - skills
+      - updated_at
+      - user_id
+      - username
+      - website
+    ProfileUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+        language_preference:
+          type: string
+        bio:
+          type: string
+        skills: {}
+        location:
+          type: string
+          maxLength: 255
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+    PublicProfile:
+      type: object
+      properties:
+        username:
+          type: string
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        bio:
+          type: string
+        skills: {}
+        location:
+          type: string
+          maxLength: 255
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - full_name
+      - username
     Rating:
       type: object
       properties:
@@ -1424,32 +1571,35 @@ components:
     Register:
       type: object
       properties:
-        username:
+        full_name:
           type: string
-          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-            only.
-          pattern: ^[\w.@+-]+$
-          maxLength: 150
+          maxLength: 255
         email:
           type: string
           format: email
-          title: Email address
+          title: Email Address
           maxLength: 254
         phone:
           type: string
+          title: Phone Number
           maxLength: 20
         password:
           type: string
           writeOnly: true
           maxLength: 128
+        password_confirm:
+          type: string
+          writeOnly: true
         is_freelancer:
           type: boolean
         is_client:
           type: boolean
       required:
+      - email
+      - full_name
       - password
+      - password_confirm
       - phone
-      - username
     ResetPassword:
       type: object
       properties:
@@ -1580,14 +1730,11 @@ components:
           readOnly: true
         username:
           type: string
-          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-            only.
-          pattern: ^[\w.@+-]+$
-          maxLength: 150
+          readOnly: true
         email:
           type: string
           format: email
-          title: Email address
+          title: Email Address
           maxLength: 254
         first_name:
           type: string
@@ -1597,6 +1744,7 @@ components:
           maxLength: 150
         phone:
           type: string
+          title: Phone Number
           maxLength: 20
         is_freelancer:
           type: boolean
@@ -1615,6 +1763,7 @@ components:
           type: string
           readOnly: true
       required:
+      - email
       - id
       - notifications
       - phone

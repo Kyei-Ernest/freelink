@@ -4,8 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-from django.contrib.auth import get_user_model
-from rest_framework import generics
+from django.contrib.auth import get_user_model, logout
 from rest_framework.authtoken.models import Token
 from .serializers import (UserSerializer, RegisterSerializer,
                           LoginSerializer, ChangePasswordSerializer,
@@ -24,8 +23,7 @@ import logging
 
 from wallet.models import Wallet
 from notifications.models import Notification
-from clients.models import ClientProfile
-from freelancers.models import FreelancerProfile
+
 
 from rest_framework import generics
 
@@ -39,7 +37,7 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
 
-class ProfileView(generics.RetrieveUpdateAPIView):
+"""class ProfileView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -51,7 +49,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         user = self.get_object()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
-
+"""
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -66,13 +64,19 @@ class LoginView(APIView):
         return Response({"token": token.key, "user": user_data})
 
 
-class LogoutView(generics.GenericAPIView):
-    serializer_class = EmptySerializer
+class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request.user.auth_token.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        # Delete token if it exists
+        token = getattr(request.user, 'auth_token', None)
+        if token:
+            token.delete()
+
+        # Log out the session
+        logout(request)
+
+        return Response({"detail": "Logged out successfully."}, status=status.HTTP_200_OK)
 
 
 class ChangePasswordView(APIView):
@@ -156,35 +160,26 @@ class ResetPasswordView(APIView):
 
 class VerifyEmailView(APIView):
     serializer_class = VerifyEmailSerializer
-    permission_classes = [IsNotAuthenticated]
+    permission_classes = []  # Allow unauthenticated users
     throttle_classes = [throttling.AnonRateThrottle]
 
     def post(self, request):
-        serializer = VerifyEmailSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            try:
-                uid = force_str(urlsafe_base64_decode(serializer.validated_data['uidb64']))
-                user = User.objects.get(pk=uid)
-            except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-                return Response({'error': 'Invalid user ID'}, status=status.HTTP_400_BAD_REQUEST)
-
+            user = serializer.validated_data['user']  # Already retrieved in serializer
             user.is_verified = True
             user.save()
-
-            # Create profile if applicable
-            if user.is_freelancer and not hasattr(user, 'freelancer_profile'):
-                FreelancerProfile.objects.create(user=user)
-            elif user.is_client and not hasattr(user, 'client_profile'):
-                ClientProfile.objects.create(user=user)
 
             logger.info(
                 f"Email verified for user: {user.username} "
                 f"(Phone: {user.phone}, Role: {'Freelancer' if user.is_freelancer else 'Client'})"
             )
+
             return Response(
                 {'message': f"Email verified successfully for {'freelancer' if user.is_freelancer else 'client'}"},
                 status=status.HTTP_200_OK
             )
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -201,14 +196,10 @@ class VerifyPhoneView(APIView):
             except User.DoesNotExist:
                 return Response({'error': 'No user found with this phone number'}, status=status.HTTP_400_BAD_REQUEST)
 
-            user.is_verified = True
+            user.is_phone_verified = True
             user.save()
 
-            # Create profile if applicable
-            if user.is_freelancer and not hasattr(user, 'freelancer_profile'):
-                FreelancerProfile.objects.create(user=user)
-            elif user.is_client and not hasattr(user, 'client_profile'):
-                ClientProfile.objects.create(user=user)
+
 
             cache.delete(f"phone_verification_{user.phone}")
             logger.info(

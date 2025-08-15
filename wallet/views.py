@@ -21,7 +21,7 @@ class WalletView(APIView):
     def get(self, request):
         if not (request.user.is_client or request.user.is_freelancer):
             return Response(
-                {'error': 'Only clients or freelancers can access their wallet'},
+                {'error': 'Only profiles or freelancers can access their wallet'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:
@@ -42,7 +42,7 @@ class WalletView(APIView):
     def post(self, request):
         if not (request.user.is_client or request.user.is_freelancer):
             return Response(
-                {'error': 'Only clients or freelancers can create a wallet'},
+                {'error': 'Only profiles or freelancers can create a wallet'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:
@@ -68,7 +68,7 @@ class WalletView(APIView):
     def put(self, request):
         if not (request.user.is_client or request.user.is_freelancer):
             return Response(
-                {'error': 'Only clients or freelancers can manage their wallet'},
+                {'error': 'Only profiles or freelancers can manage their wallet'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:

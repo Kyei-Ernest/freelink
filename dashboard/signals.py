@@ -3,7 +3,6 @@ from django.dispatch import receiver
 from transactions.models import Transaction
 from escrow.models import Escrow, EscrowDispute
 from chat.models import Message
-from .models import Dashboard
 
 @receiver(post_save, sender=Transaction)
 @receiver(post_save, sender=Escrow)

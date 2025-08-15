@@ -40,8 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'users',
-    'freelancers',
-    'clients',
+    'profiles',
     'jobs',
     'transactions',
     'ratings',
@@ -52,6 +51,7 @@ INSTALLED_APPS = [
     'chat',
     'drf_spectacular',
     'drf_spectacular_sidecar',
+
 ]
 
 MIDDLEWARE = [
@@ -124,14 +124,9 @@ DATABASES = {
     }
 }
 
-# Email settings (example for Gmail)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'kookyei44@gmail.com'
-EMAIL_HOST_PASSWORD = 'pass'
-DEFAULT_FROM_EMAIL = 'Freelink Ghana kookyei44@gmail.com'
+# settings.py
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 
 
 CACHES = {

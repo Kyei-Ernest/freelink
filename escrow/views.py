@@ -22,7 +22,7 @@ class EscrowView(APIView):
     def get(self, request, transaction_id):
         if not (request.user.is_client or request.user.is_freelancer or request.user.is_staff):
             return Response(
-                {'error': 'Only clients, freelancers, or admins can access escrow details'},
+                {'error': 'Only profiles, freelancers, or admins can access escrow details'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if not request.user.is_verified:
