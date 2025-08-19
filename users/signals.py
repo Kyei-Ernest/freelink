@@ -1,7 +1,10 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from profiles.models import Profile
 
 from django.contrib.auth import get_user_model
@@ -31,6 +34,8 @@ def send_verification_on_signup(sender, instance, created, **kwargs):
     """
     Sends verification email when a new user is created.
     """
-    if created:
-        send_verification_email(instance)
+    if created and not instance.is_verified:
+        uid = urlsafe_base64_encode(force_bytes(instance.pk))
+        token = default_token_generator.make_token(instance)
+        send_verification_email(instance, uid, token)
 

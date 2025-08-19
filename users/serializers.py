@@ -1,11 +1,9 @@
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-
-from django.core.cache import cache  # For storing verification codes temporarily
 
 from wallet.models import Wallet
 from notifications.models import Notification
@@ -18,11 +16,15 @@ User = get_user_model()
         model = Wallet
         fields = ['balance']
 """
+
+
 """class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ['id', 'title', 'message', 'is_read', 'created_at']
 """
+
+
 class VerifyEmailSerializer(serializers.Serializer):
     token = serializers.CharField(required=True, write_only=True)
     uidb64 = serializers.CharField(required=True, write_only=True)
@@ -42,6 +44,7 @@ class VerifyEmailSerializer(serializers.Serializer):
         data['user'] = user
 
         return data
+
 
 class UserSerializer(serializers.ModelSerializer):
    # wallet = WalletSerializer(read_only=True)
@@ -115,6 +118,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
@@ -125,28 +129,37 @@ class LoginSerializer(serializers.Serializer):
             return user
         raise serializers.ValidationError("Invalid credentials")
 
+
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, write_only=True)
     new_password = serializers.CharField(required=True, write_only=True)
-    confirm_new_password = serializers.CharField(required=True, write_only=True)
+    confirm_password = serializers.CharField(required=True, write_only=True)
 
-    def validate(self, data):
-        # Check if new password matches old password
-        if data['old_password'] == data['new_password']:
-            raise serializers.ValidationError({'new_password': 'New password must be different from the old password'})
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Old password is not correct.")
+        return value
 
-        # Check if new password matches confirmation
-        if data['new_password'] != data['confirm_new_password']:
-            raise serializers.ValidationError({'confirm_new_password': 'New passwords do not match'})
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "New passwords must match."})
 
-        # Check minimum password length
-        if len(data['new_password']) < 8:
-            raise serializers.ValidationError({'new_password': 'New password must be at least 8 characters long'})
+        if attrs['new_password'] == attrs['old_password']:
+            raise serializers.ValidationError({"new_password": "New password cannot be the same as the old password."})
 
-        return data
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user
+
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
 
 class ResetPasswordSerializer(serializers.Serializer):
     token = serializers.CharField(required=True, write_only=True)
@@ -176,7 +189,37 @@ class ResetPasswordSerializer(serializers.Serializer):
 
         return data
 
-class VerifyPhoneSerializer(serializers.Serializer):
+
+"""class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "Passwords must match."})
+        return attrs
+
+    def save(self, **kwargs):
+        uid = self.validated_data['uid']
+        token = self.validated_data['token']
+        new_password = self.validated_data['new_password']
+
+        try:
+            uid_decoded = urlsafe_base64_decode(uid).decode()
+            user = User.objects.get(pk=uid_decoded)
+        except (User.DoesNotExist, ValueError, TypeError):
+            raise serializers.ValidationError({"uid": "Invalid reset link."})
+
+        if not default_token_generator.check_token(user, token):
+            raise serializers.ValidationError({"token": "Invalid or expired token."})
+
+        user.set_password(new_password)
+        user.save()
+        return user
+"""
+"""class VerifyPhoneSerializer(serializers.Serializer):
     phone = serializers.CharField(required=True, write_only=True)
     code = serializers.CharField(required=True, write_only=True)
 
@@ -191,9 +234,13 @@ class VerifyPhoneSerializer(serializers.Serializer):
         if not cached_code or cached_code != data['code']:
             raise serializers.ValidationError({'code': 'Invalid or expired verification code'})
         return data
+"""
 
-class SendVerificationEmailSerializer(serializers.Serializer):
+
+"""class SendVerificationEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
+"""
+
 
 class EmptySerializer(serializers.Serializer):
     """Serializer for endpoints that don't require input."""

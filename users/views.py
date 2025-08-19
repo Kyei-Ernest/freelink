@@ -9,14 +9,13 @@ from rest_framework.authtoken.models import Token
 from .serializers import (UserSerializer, RegisterSerializer,
                           LoginSerializer, ChangePasswordSerializer,
                           ResetPasswordSerializer, VerifyEmailSerializer,
-                          VerifyPhoneSerializer, PasswordResetRequestSerializer, EmptySerializer,
-                          SendVerificationEmailSerializer)
+                          PasswordResetRequestSerializer )
+
 from django.contrib.auth import update_session_auth_hash
-from django.core.cache import cache  # For storing verification codes temporarily
 from rest_framework import throttling
 
 from django.core.mail import send_mail
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 import logging
@@ -32,6 +31,7 @@ User = get_user_model()
 
 
 class RegisterView(generics.CreateAPIView):
+    """Register a new user account."""
     queryset = User.objects.all()
     permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
@@ -51,7 +51,9 @@ class RegisterView(generics.CreateAPIView):
         return Response(serializer.data)
 """
 
+
 class LoginView(APIView):
+    """Authenticate user and return auth token with user details."""
     serializer_class = LoginSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -65,66 +67,42 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    """Log out user by deleting token and ending session."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Delete token if it exists
         token = getattr(request.user, 'auth_token', None)
         if token:
             token.delete()
-
-        # Log out the session
         logout(request)
-
         return Response({"detail": "Logged out successfully."}, status=status.HTTP_200_OK)
 
 
-class ChangePasswordView(APIView):
+class ChangePasswordView(generics.UpdateAPIView):
+    """Change password for the authenticated user."""
     serializer_class = ChangePasswordSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
-        user = request.user
-        serializer = ChangePasswordSerializer(data=request.data)
+    def get_object(self):
+        return self.request.user
 
-        if serializer.is_valid():
-            old_password = serializer.validated_data['old_password']
-            new_password = serializer.validated_data['new_password']
-
-            # Verify old password
-            if not user.check_password(old_password):
-                return Response(
-                    {'old_password': 'Current password is incorrect'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Set new password and save
-            user.set_password(new_password)
-            user.save()
-
-            # Update session to prevent logout
-            update_session_auth_hash(request, user)
-
-            # Log the password change
-            logger.info(
-                f"Password changed for user: {user.username} (Phone: {user.phone}, Role: {'Freelancer' if user.is_freelancer else 'Client'})")
-
-            return Response(
-                {'message': f"Password changed successfully for {'freelancer' if user.is_freelancer else 'client'}"},
-                status=status.HTTP_200_OK
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
 
 
 class IsNotAuthenticated(permissions.BasePermission):
+    """Permission that only allows unauthenticated users."""
     def has_permission(self, request, view):
         return not request.user.is_authenticated
 
 
 class ResetPasswordView(APIView):
+    """Reset password for unauthenticated users using uid and token."""
     serializer_class = ResetPasswordSerializer
-    permission_classes = [IsNotAuthenticated]  # Only allow unauthenticated users
+    permission_classes = [IsNotAuthenticated]
 
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
@@ -139,12 +117,10 @@ class ResetPasswordView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Set new password
             new_password = serializer.validated_data['new_password']
             user.set_password(new_password)
             user.save()
 
-            # Log the password reset
             logger.info(
                 f"Password reset for user: {user.username} "
                 f"(Phone: {user.phone}, Role: {'Freelancer' if user.is_freelancer else 'Client'})"
@@ -159,14 +135,15 @@ class ResetPasswordView(APIView):
 
 
 class VerifyEmailView(APIView):
+    """Verify email address for a newly registered user."""
     serializer_class = VerifyEmailSerializer
-    permission_classes = []  # Allow unauthenticated users
+    permission_classes = []
     throttle_classes = [throttling.AnonRateThrottle]
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data['user']  # Already retrieved in serializer
+            user = serializer.validated_data['user']
             user.is_verified = True
             user.save()
 
@@ -183,7 +160,7 @@ class VerifyEmailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class VerifyPhoneView(APIView):
+"""class VerifyPhoneView(APIView):
     serializer_class = VerifyPhoneSerializer
     permission_classes = [IsNotAuthenticated]
     throttle_classes = [throttling.AnonRateThrottle]
@@ -211,50 +188,50 @@ class VerifyPhoneView(APIView):
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+"""
 
 
-class PasswordResetRequestView(generics.CreateAPIView):
-    permission_classes = [IsNotAuthenticated]
-    throttle_classes = [throttling.AnonRateThrottle]
+class PasswordResetRequestView(generics.GenericAPIView):
+    """Request a password reset link by providing email address."""
     serializer_class = PasswordResetRequestSerializer
+    permission_classes = [permissions.AllowAny]
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data['email']
-
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            # Always respond the same for security reasons
             return Response(
-                {'message': 'If an account exists with this email, a reset link will be sent'},
-                status=status.HTTP_200_OK
+                {"detail": "If an account exists, password reset instructions have been sent."},
+                status=200
             )
 
-        # Generate reset token
-        token = PasswordResetTokenGenerator().make_token(user)
-        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-        reset_url = f"{request.scheme}://{request.get_host()}/reset-password/?uidb64={uidb64}&token={token}"
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-        # Send email
-        send_mail(
-            subject='Password Reset Request',
-            message=f'Click the link to reset your password: {reset_url}',
-            from_email='kookyei44@gmail.com',
-            recipient_list=[user.email],
-        )
+        # Normally sent via email
+        reset_link = f"http://frontend-site/reset-password/{uid}/{token}/"
 
-        logger.info(f"Password reset link sent to {user.email} (Phone: {user.phone})")
-
-        return Response(
-            {'message': 'If an account exists with this email, a reset link will be sent'},
-            status=status.HTTP_200_OK
-        )
+        return Response({"reset_link": reset_link}, status=200)
 
 
-class SendVerificationEmailView(APIView):
+"""class PasswordResetConfirmView(generics.GenericAPIView):
+    ""Confirm password reset and set a new password using uid and token.""
+    serializer_class = PasswordResetConfirmSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Password has been reset successfully."}, status=200)
+
+"""
+
+"""class SendVerificationEmailView(APIView):
     serializer_class = SendVerificationEmailSerializer
     permission_classes = [IsNotAuthenticated]
     throttle_classes = [throttling.AnonRateThrottle]
@@ -285,3 +262,4 @@ class SendVerificationEmailView(APIView):
             {'message': 'If an unverified account exists, a verification link will be sent'},
             status=status.HTTP_200_OK
         )
+"""
