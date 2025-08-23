@@ -1,8 +1,8 @@
-from django.db.models.signals import post_save
+"""from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from jobs.models import Job
+#from jobs.models import Job
 from .models import Escrow
 from wallet.models import Wallet
 from notifications.utils import send_email_notification, create_notification
@@ -36,3 +36,4 @@ def auto_release_escrow(sender, instance, **kwargs):
 
         except Escrow.DoesNotExist:
             pass  # Optionally: log this
+"""

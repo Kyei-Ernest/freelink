@@ -1,54 +1,56 @@
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
+
 
 class Job(models.Model):
-    STATUS_CHOICES = [
-        ('OPEN', 'Open'),
-        ('IN_PROGRESS', 'In Progress'),
-        ('AWAITING_REVIEW', 'Awaiting Review'),
-        ('COMPLETED', 'Completed'),
-    ]
+    JOB_STATUS = (
+        ('available', 'Available'),
+        ('pending', 'Pending'),          # At least one proposal is under review
+        ('in_progress', 'In Progress'),  # A proposal has been accepted
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    )
 
-    client = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, blank=True, null=True)
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='jobs_posted',
+        limit_choices_to={'is_client': True}  # Ensure only clients can post
+    )
+    freelancer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='jobs_taken',
+        null=True,
+        blank=True,
+        limit_choices_to={'is_freelancer': True}  # Assigned freelancer
+    )
+    title = models.CharField(max_length=200)
     description = models.TextField()
     budget = models.DecimalField(max_digits=10, decimal_places=2)
-    location = models.CharField(max_length=255, blank=True)
+    duration = models.PositiveIntegerField(null=True, blank=True, help_text="Estimated duration in days")
+    deadline = models.DateTimeField(null=True, blank=True)
+    skills_required = models.ManyToManyField("Skill", blank=True, related_name="jobs")
+
     created_at = models.DateTimeField(auto_now_add=True)
-    deadline = models.DateField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='OPEN')
-
-    def __str__(self):
-        return f"{self.title} ({self.client.username})"
-
-    def is_overdue(self):
-        return self.deadline < timezone.now().date() and self.status != 'COMPLETED'
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=20, choices=JOB_STATUS, default='available')
 
     class Meta:
         ordering = ['-created_at']
 
+    def __str__(self):
+        return self.title
 
-class JobApplication(models.Model):
-    job = models.ForeignKey(Job, related_name="applications", on_delete=models.CASCADE)
-    freelancer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    cover_letter = models.TextField()
-    is_selected = models.BooleanField(default=False)
-    applied_at = models.DateTimeField(auto_now_add=True)
-    selected_at = models.DateTimeField(null=True, blank=True)
-    # Improvements
-    STATUS_CHOICES = [
-        ("PENDING", "Pending"),
-        ("ACCEPTED", "Accepted"),
-        ("REJECTED", "Rejected"),
-        ("WITHDRAWN", "Withdrawn"),
-    ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
-    message = models.TextField(blank=True)  # Message from client to freelancer
-    is_active = models.BooleanField(default=True)
-    attachment = models.FileField(upload_to="job_app_attachments/", null=True, blank=True)
-    feedback = models.TextField(blank=True)  # Feedback from client after job completion
+
+class Skill(models.Model):
+    """Reusable skill model for tagging jobs."""
+    name = models.CharField(max_length=50, unique=True)
+    # approved = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["name"]
 
     def __str__(self):
-        return f"{self.freelancer.username} - {self.job.title}"
+        return self.name
 

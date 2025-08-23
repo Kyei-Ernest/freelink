@@ -1,86 +1,95 @@
-from django.utils import timezone
-
-from rest_framework import generics, permissions
-from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.response import Response
-
-from .models import Job, JobApplication
-from .serializers import JobSerializer, JobApplicationSerializer
-
-from .serializers import JobCompletionSerializer
+from rest_framework import generics, permissions, viewsets
+from .models import Job, Skill
+from .serializers import JobSerializer, JobDetailSerializer, JobStatusSerializer, SkillSerializer
 
 
-class JobListView(generics.ListAPIView):
+class IsClientUser(permissions.BasePermission):
+    """
+    Custom permission to only allow 'client' users to create jobs.
+    Assumes your User model has a 'user_type' field.
+    """
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.is_client == True
+
+
+class IsJobOwner(permissions.BasePermission):
+    """
+    Custom permission to only allow the owner (client who posted the job)
+    to edit, update, or delete it.
+    """
+    def has_object_permission(self, request, view, obj):
+        return obj.client == request.user
+
+
+class JobListCreateView(generics.ListCreateAPIView):
+    """
+    API endpoint:
+    - GET: List all jobs.
+    - POST: Create a new job (only allowed for clients).
+    """
     queryset = Job.objects.all()
-    serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class JobCreateView(generics.CreateAPIView):
-    queryset = Job.objects.all()
-    serializer_class = JobSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_class(self):
+        # Use JobSerializer for creation, JobDetailSerializer for listing
+        if self.request.method == 'POST':
+            return JobSerializer
+        return JobDetailSerializer
 
-    def post(self, request, *args, **kwargs):
-        if not request.user.is_client:
-            return Response({"error": "Only profiles can create jobs."}, status=status.HTTP_403_FORBIDDEN)
-        return super().post(request, *args, **kwargs)
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [permissions.IsAuthenticated, IsClientUser]
+        return super().get_permissions()
 
     def perform_create(self, serializer):
+        # Automatically set the client to the logged-in user
         serializer.save(client=self.request.user)
 
-class JobDetailView(generics.RetrieveAPIView):
+
+class JobRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API endpoint for retrieving, updating, or deleting a job.
+
+    - GET: Retrieve a specific job by ID.
+    - PUT/PATCH: Update a job (only the client who created it can update).
+    - DELETE: Delete a job (only the client who created it can delete).
+    """
     queryset = Job.objects.all()
-    serializer_class = JobSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated, IsJobOwner]
 
-class ApplyToJobView(generics.ListCreateAPIView):
-    queryset = JobApplication.objects.all()
-    lookup_field = 'pk'
-    serializer_class = JobApplicationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return JobSerializer
+        return JobDetailSerializer
 
-    def perform_create(self, serializer):
-        if not self.request.user.is_freelancer:
-            raise PermissionDenied("Only freelancers can apply to jobs.")
-        serializer.save(freelancer=self.request.user)
 
-class ClientJobApplicationsView(generics.ListAPIView):
-    serializer_class = JobApplicationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class JobUpdateStatusView(generics.UpdateAPIView):
+    """
+    API endpoint for updating the status of a job.
+    Example: A client marking the job as 'completed' or 'cancelled'.
 
-    def get_queryset(self):
-        user = self.request.user
-        if not user.is_client:
-            return JobApplication.objects.none()
-        return JobApplication.objects.filter(job__client=user)
-
-class SelectFreelancerView(generics.UpdateAPIView):
-    serializer_class = JobApplicationSerializer
-    queryset = JobApplication.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-
-    def patch(self, request, *args, **kwargs):
-        application = self.get_object()
-        if application.job.client != request.user:
-            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
-        application.is_selected = True
-        application.selected_at = timezone.now()
-        application.save()
-        application.job.is_open = False
-        application.job.save()
-        return Response({"message": "Freelancer selected."})
-
-class CompleteJobView(generics.ListAPIView):
+    - PATCH: Update only the status field.
+    """
     queryset = Job.objects.all()
-    serializer_class = JobCompletionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = JobStatusSerializer
+    permission_classes = [permissions.IsAuthenticated, IsJobOwner]
 
-    def patch(self, request):
-        job = self.get_object()
-        if request.user != job.client:
-            return Response({"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN)
-        job.status = 'completed'
-        job.save()
-        return Response({"message": "Job marked as completed."})
+
+class IsAdminUser(permissions.BasePermission):
+    """Allow access only to admin users (is_staff=True)."""
+    def has_permission(self, request, view):
+        return request.user and request.user.is_staff
+
+
+class SkillViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for admins to manage skills.
+    - GET: List all skills
+    - POST: Create a new skill
+    - PUT/PATCH: Update an existing skill
+    - DELETE: Remove a skill
+    """
+    queryset = Skill.objects.all().order_by("name")
+    serializer_class = SkillSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
