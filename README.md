@@ -17,8 +17,8 @@ Table of Contents
 
 Overview
 --------
-**Freelink** is a backend system that powers freelance job marketplaces.  
-It allows **clients** to post jobs, create contracts, and manage milestones, while **freelancers** can apply, communicate, and get paid securely.
+Freelink is a backend system that powers freelance job marketplaces.  
+It allows clients to post jobs, create contracts, and manage milestones, while **freelancers** can apply, communicate, and get paid securely.
 
 This project is designed to be developer-friendly and can be integrated with any frontend framework (React, Vue, Angular, etc.).
 
@@ -53,7 +53,10 @@ cd freelink-api
 ```
 
 2. Set up environment  
-#####
+  SECRET_KEY=your-secret-key
+  DEBUG=True
+  ALLOWED_HOSTS=127.0.0.1,localhost
+
 
 3. Install dependencies
 ```bash
@@ -71,11 +74,11 @@ python manage.py runserver
 ```
 
 
-📖 API Documentation
+API Documentation
 --------------------
 Full API reference with endpoints, request/response examples, and error handling:  
 
-👉 [API Documentation](API.pdf)
+[API Documentation](API.pdf)
 
 
 Contributing
