@@ -71,11 +71,11 @@ python manage.py runserver
 ```
 
 
-📖 API Documentation
+API Documentation
 --------------------
 Full API reference with endpoints, request/response examples, and error handling:  
 
-👉 [API Documentation](API.pdf)
+[API Documentation](API.pdf)
 
 
 Contributing
