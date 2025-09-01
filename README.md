@@ -81,7 +81,7 @@ python manage.py runserver
 --------------------
 Full API reference with endpoints, request/response examples, and error handling:  
 
-👉 [API Documentation](docs/API.md)
+👉 [API Documentation](API.pdf)
 
 
 Contributing
