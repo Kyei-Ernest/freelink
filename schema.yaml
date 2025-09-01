@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Freelink
   version: 1.0.0
-  description: API for freelancers
+  description: API for freelancing system
 paths:
   /api/chat/inbox/:
     get:
@@ -97,6 +97,501 @@ paths:
                 items:
                   $ref: '#/components/schemas/Message'
           description: ''
+  /api/contracts/contracts/:
+    get:
+      operationId: api_contracts_contracts_list
+      description: |-
+        ViewSet for managing contracts.
+        - create: Client creates a new contract.
+        - list/retrieve: List or get details of contracts.
+        - update: Update contract details.
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Contract'
+          description: ''
+    post:
+      operationId: api_contracts_contracts_create
+      description: |-
+        ViewSet for managing contracts.
+        - create: Client creates a new contract.
+        - list/retrieve: List or get details of contracts.
+        - update: Update contract details.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ContractCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ContractCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractCreate'
+          description: ''
+  /api/contracts/contracts/{contract_id}/milestones/:
+    get:
+      operationId: api_contracts_contracts_milestones_list
+      description: |-
+        ViewSet for managing milestones within a contract.
+        - create: Add a milestone to a contract (only if active).
+        - list/retrieve: List or get details of milestones for a contract.
+        - update/delete: Update or remove milestones.
+      parameters:
+      - in: path
+        name: contract_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Milestone'
+          description: ''
+    post:
+      operationId: api_contracts_contracts_milestones_create
+      description: |-
+        ViewSet for managing milestones within a contract.
+        - create: Add a milestone to a contract (only if active).
+        - list/retrieve: List or get details of milestones for a contract.
+        - update/delete: Update or remove milestones.
+      parameters:
+      - in: path
+        name: contract_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Milestone'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Milestone'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Milestone'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Milestone'
+          description: ''
+  /api/contracts/contracts/{contract_id}/milestones/{id}/:
+    get:
+      operationId: api_contracts_contracts_milestones_retrieve
+      description: |-
+        ViewSet for managing milestones within a contract.
+        - create: Add a milestone to a contract (only if active).
+        - list/retrieve: List or get details of milestones for a contract.
+        - update/delete: Update or remove milestones.
+      parameters:
+      - in: path
+        name: contract_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this milestone.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Milestone'
+          description: ''
+    put:
+      operationId: api_contracts_contracts_milestones_update
+      description: |-
+        ViewSet for managing milestones within a contract.
+        - create: Add a milestone to a contract (only if active).
+        - list/retrieve: List or get details of milestones for a contract.
+        - update/delete: Update or remove milestones.
+      parameters:
+      - in: path
+        name: contract_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this milestone.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Milestone'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Milestone'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Milestone'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Milestone'
+          description: ''
+    patch:
+      operationId: api_contracts_contracts_milestones_partial_update
+      description: |-
+        ViewSet for managing milestones within a contract.
+        - create: Add a milestone to a contract (only if active).
+        - list/retrieve: List or get details of milestones for a contract.
+        - update/delete: Update or remove milestones.
+      parameters:
+      - in: path
+        name: contract_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this milestone.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMilestone'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMilestone'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMilestone'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Milestone'
+          description: ''
+    delete:
+      operationId: api_contracts_contracts_milestones_destroy
+      description: |-
+        ViewSet for managing milestones within a contract.
+        - create: Add a milestone to a contract (only if active).
+        - list/retrieve: List or get details of milestones for a contract.
+        - update/delete: Update or remove milestones.
+      parameters:
+      - in: path
+        name: contract_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this milestone.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/contracts/contracts/{id}/:
+    get:
+      operationId: api_contracts_contracts_retrieve
+      description: |-
+        ViewSet for managing contracts.
+        - create: Client creates a new contract.
+        - list/retrieve: List or get details of contracts.
+        - update: Update contract details.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this contract.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+          description: ''
+    put:
+      operationId: api_contracts_contracts_update
+      description: |-
+        ViewSet for managing contracts.
+        - create: Client creates a new contract.
+        - list/retrieve: List or get details of contracts.
+        - update: Update contract details.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this contract.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contract'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Contract'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Contract'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+          description: ''
+    patch:
+      operationId: api_contracts_contracts_partial_update
+      description: |-
+        ViewSet for managing contracts.
+        - create: Client creates a new contract.
+        - list/retrieve: List or get details of contracts.
+        - update: Update contract details.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this contract.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedContract'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedContract'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedContract'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+          description: ''
+    delete:
+      operationId: api_contracts_contracts_destroy
+      description: |-
+        ViewSet for managing contracts.
+        - create: Client creates a new contract.
+        - list/retrieve: List or get details of contracts.
+        - update: Update contract details.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this contract.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/contracts/contracts/{id}/accept/:
+    patch:
+      operationId: api_contracts_contracts_accept_partial_update
+      description: Freelancer accepts a contract that is in 'pending_acceptance' state.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/contracts/contracts/{id}/dispute/:
+    patch:
+      operationId: api_contracts_contracts_dispute_partial_update
+      description: Either client or freelancer can raise a dispute on an active or
+        in-review contract.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/contracts/contracts/{id}/reject/:
+    patch:
+      operationId: api_contracts_contracts_reject_partial_update
+      description: Freelancer rejects a contract that is in 'pending_acceptance' state.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/contracts/contracts/{id}/submit-work/:
+    patch:
+      operationId: api_contracts_contracts_submit_work_partial_update
+      description: Freelancer submits work for a contract (moves it from 'active'
+        → 'in_review').
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/contracts/contracts/user/{user_id}/:
+    get:
+      operationId: api_contracts_contracts_user_retrieve
+      description: List all contracts for a given user (client or freelancer).
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/dashboard/:
     get:
       operationId: api_dashboard_retrieve
@@ -186,6 +681,10 @@ paths:
   /api/jobs/:
     get:
       operationId: api_jobs_list
+      description: |-
+        API endpoint:
+        - GET: List all jobs.
+        - POST: Create a new job (only allowed for clients).
       tags:
       - api
       security:
@@ -198,33 +697,47 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Job'
+                  $ref: '#/components/schemas/JobDetail'
+          description: ''
+    post:
+      operationId: api_jobs_create
+      description: |-
+        API endpoint:
+        - GET: List all jobs.
+        - POST: Create a new job (only allowed for clients).
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Job'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Job'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
           description: ''
   /api/jobs/{id}/:
     get:
       operationId: api_jobs_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - api
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Job'
-          description: ''
-  /api/jobs/{id}/apply/:
-    get:
-      operationId: api_jobs_apply_list
+      description: |-
+        API endpoint for retrieving, updating, or deleting a job.
+
+        - GET: Retrieve a specific job by ID.
+        - PUT/PATCH: Update a job (only the client who created it can update).
+        - DELETE: Delete a job (only the client who created it can delete).
       parameters:
       - in: path
         name: id
@@ -241,116 +754,16 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/JobApplication'
+                $ref: '#/components/schemas/JobDetail'
           description: ''
-    post:
-      operationId: api_jobs_apply_create
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobApplication'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobApplication'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobApplication'
-        required: true
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobApplication'
-          description: ''
-  /api/jobs/{id}/job_status/:
-    get:
-      operationId: api_jobs_job_status_list
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - api
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/JobCompletion'
-          description: ''
-    patch:
-      operationId: api_jobs_job_status_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedJobCompletion'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedJobCompletion'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedJobCompletion'
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobCompletion'
-          description: ''
-  /api/jobs/applications/:
-    get:
-      operationId: api_jobs_applications_list
-      tags:
-      - api
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/JobApplication'
-          description: ''
-  /api/jobs/applications/{id}/select/:
     put:
-      operationId: api_jobs_applications_select_update
+      operationId: api_jobs_update
+      description: |-
+        API endpoint for retrieving, updating, or deleting a job.
+
+        - GET: Retrieve a specific job by ID.
+        - PUT/PATCH: Update a job (only the client who created it can update).
+        - DELETE: Delete a job (only the client who created it can delete).
       parameters:
       - in: path
         name: id
@@ -363,13 +776,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JobApplication'
+              $ref: '#/components/schemas/Job'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/JobApplication'
+              $ref: '#/components/schemas/Job'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/JobApplication'
+              $ref: '#/components/schemas/Job'
         required: true
       security:
       - cookieAuth: []
@@ -379,10 +792,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JobApplication'
+                $ref: '#/components/schemas/Job'
           description: ''
     patch:
-      operationId: api_jobs_applications_select_partial_update
+      operationId: api_jobs_partial_update
+      description: |-
+        API endpoint for retrieving, updating, or deleting a job.
+
+        - GET: Retrieve a specific job by ID.
+        - PUT/PATCH: Update a job (only the client who created it can update).
+        - DELETE: Delete a job (only the client who created it can delete).
       parameters:
       - in: path
         name: id
@@ -395,13 +814,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedJobApplication'
+              $ref: '#/components/schemas/PatchedJob'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedJobApplication'
+              $ref: '#/components/schemas/PatchedJob'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedJobApplication'
+              $ref: '#/components/schemas/PatchedJob'
       security:
       - cookieAuth: []
       - tokenAuth: []
@@ -410,24 +829,147 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JobApplication'
+                $ref: '#/components/schemas/Job'
           description: ''
-  /api/jobs/create:
-    post:
-      operationId: api_jobs_create_create
+    delete:
+      operationId: api_jobs_destroy
+      description: |-
+        API endpoint for retrieving, updating, or deleting a job.
+
+        - GET: Retrieve a specific job by ID.
+        - PUT/PATCH: Update a job (only the client who created it can update).
+        - DELETE: Delete a job (only the client who created it can delete).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/jobs/{id}/status/:
+    put:
+      operationId: api_jobs_status_update
+      description: |-
+        API endpoint for updating the status of a job.
+        Example: A client marking the job as 'completed' or 'cancelled'.
+
+        - PATCH: Update only the status field.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
       tags:
       - api
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Job'
+              $ref: '#/components/schemas/JobStatus'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Job'
+              $ref: '#/components/schemas/JobStatus'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Job'
+              $ref: '#/components/schemas/JobStatus'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatus'
+          description: ''
+    patch:
+      operationId: api_jobs_status_partial_update
+      description: |-
+        API endpoint for updating the status of a job.
+        Example: A client marking the job as 'completed' or 'cancelled'.
+
+        - PATCH: Update only the status field.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedJobStatus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedJobStatus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedJobStatus'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatus'
+          description: ''
+  /api/jobs/skills/:
+    get:
+      operationId: api_jobs_skills_list
+      description: |-
+        API endpoint for admins to manage skills.
+        - GET: List all skills
+        - POST: Create a new skill
+        - PUT/PATCH: Update an existing skill
+        - DELETE: Remove a skill
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Skill'
+          description: ''
+    post:
+      operationId: api_jobs_skills_create
+      description: |-
+        API endpoint for admins to manage skills.
+        - GET: List all skills
+        - POST: Create a new skill
+        - PUT/PATCH: Update an existing skill
+        - DELETE: Remove a skill
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Skill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Skill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Skill'
         required: true
       security:
       - cookieAuth: []
@@ -437,8 +979,136 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Job'
+                $ref: '#/components/schemas/Skill'
           description: ''
+  /api/jobs/skills/{id}/:
+    get:
+      operationId: api_jobs_skills_retrieve
+      description: |-
+        API endpoint for admins to manage skills.
+        - GET: List all skills
+        - POST: Create a new skill
+        - PUT/PATCH: Update an existing skill
+        - DELETE: Remove a skill
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this skill.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+          description: ''
+    put:
+      operationId: api_jobs_skills_update
+      description: |-
+        API endpoint for admins to manage skills.
+        - GET: List all skills
+        - POST: Create a new skill
+        - PUT/PATCH: Update an existing skill
+        - DELETE: Remove a skill
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this skill.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Skill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Skill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Skill'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+          description: ''
+    patch:
+      operationId: api_jobs_skills_partial_update
+      description: |-
+        API endpoint for admins to manage skills.
+        - GET: List all skills
+        - POST: Create a new skill
+        - PUT/PATCH: Update an existing skill
+        - DELETE: Remove a skill
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this skill.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSkill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSkill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSkill'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+          description: ''
+    delete:
+      operationId: api_jobs_skills_destroy
+      description: |-
+        API endpoint for admins to manage skills.
+        - GET: List all skills
+        - POST: Create a new skill
+        - PUT/PATCH: Update an existing skill
+        - DELETE: Remove a skill
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this skill.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/notifications/:
     get:
       operationId: api_notifications_list
@@ -456,15 +1126,55 @@ paths:
                 items:
                   $ref: '#/components/schemas/Notification'
           description: ''
-  /api/profiles/{username}/:
+  /api/payments/init/:
+    post:
+      operationId: api_payments_init_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Deposit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Deposit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Deposit'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deposit'
+          description: ''
+  /api/payments/verify/:
+    get:
+      operationId: api_payments_verify_retrieve
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/profiles/{user__email}/:
     get:
       operationId: api_profiles_retrieve
       description: GET /profile/<username>/ → View a public profile
       parameters:
       - in: path
-        name: username
+        name: user__email
         schema:
           type: string
+          format: email
+          title: Email Address
         required: true
       tags:
       - api
@@ -547,6 +1257,158 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProfileUpdate'
+          description: ''
+  /api/proposals/:
+    get:
+      operationId: api_proposals_list
+      description: |-
+        - GET:
+            * Freelancers → List their own proposals.
+            * Clients → List proposals received for their jobs.
+        - POST:
+            * Freelancers submit a new proposal for a job.
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Proposal'
+          description: ''
+    post:
+      operationId: api_proposals_create
+      description: |-
+        - GET:
+            * Freelancers → List their own proposals.
+            * Clients → List proposals received for their jobs.
+        - POST:
+            * Freelancers submit a new proposal for a job.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Proposal'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Proposal'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Proposal'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+          description: ''
+  /api/proposals/{id}/:
+    get:
+      operationId: api_proposals_retrieve
+      description: |-
+        Retrieve a single proposal.
+        Accessible by:
+          - Freelancer who submitted it
+          - Client who owns the job
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+          description: ''
+  /api/proposals/{id}/status/:
+    put:
+      operationId: api_proposals_status_update
+      description: |-
+        Endpoint for clients to update a proposal's status.
+        - Accept: Creates a Contract, marks job 'in_progress', declines others.
+        - Decline: Simply marks proposal as declined.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposalStatus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProposalStatus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProposalStatus'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalStatus'
+          description: ''
+    patch:
+      operationId: api_proposals_status_partial_update
+      description: |-
+        Endpoint for clients to update a proposal's status.
+        - Accept: Creates a Contract, marks job 'in_progress', declines others.
+        - Decline: Simply marks proposal as declined.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProposalStatus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProposalStatus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProposalStatus'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalStatus'
           description: ''
   /api/ratings/{user_id}/:
     get:
@@ -677,8 +1539,9 @@ paths:
                 $ref: '#/components/schemas/TransactionStatus'
           description: ''
   /api/users/change-password/:
-    post:
-      operationId: api_users_change_password_create
+    put:
+      operationId: api_users_change_password_update
+      description: Change password for the authenticated user.
       tags:
       - api
       requestBody:
@@ -703,9 +1566,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChangePassword'
           description: ''
+    patch:
+      operationId: api_users_change_password_partial_update
+      description: Change password for the authenticated user.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChangePassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChangePassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChangePassword'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePassword'
+          description: ''
   /api/users/login/:
     post:
       operationId: api_users_login_create
+      description: Authenticate user and return auth token with user details.
       tags:
       - api
       requestBody:
@@ -734,6 +1624,7 @@ paths:
   /api/users/logout/:
     post:
       operationId: api_users_logout_create
+      description: Log out user by deleting token and ending session.
       tags:
       - api
       security:
@@ -745,6 +1636,7 @@ paths:
   /api/users/password-reset-request/:
     post:
       operationId: api_users_password_reset_request_create
+      description: Request a password reset link by providing email address.
       tags:
       - api
       requestBody:
@@ -762,82 +1654,18 @@ paths:
       security:
       - cookieAuth: []
       - tokenAuth: []
+      - {}
       responses:
-        '201':
+        '200':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PasswordResetRequest'
           description: ''
-  /api/users/profile/:
-    get:
-      operationId: api_users_profile_retrieve
-      tags:
-      - api
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
-    put:
-      operationId: api_users_profile_update
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/User'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/User'
-        required: true
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
-    patch:
-      operationId: api_users_profile_partial_update
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedUser'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedUser'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUser'
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
   /api/users/register/:
     post:
       operationId: api_users_register_create
+      description: Register a new user account.
       tags:
       - api
       requestBody:
@@ -866,6 +1694,7 @@ paths:
   /api/users/reset-password/:
     post:
       operationId: api_users_reset_password_create
+      description: Reset password for unauthenticated users using uid and token.
       tags:
       - api
       requestBody:
@@ -890,36 +1719,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResetPassword'
           description: ''
-  /api/users/send-verification-email/:
-    post:
-      operationId: api_users_send_verification_email_create
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SendVerificationEmail'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/SendVerificationEmail'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/SendVerificationEmail'
-        required: true
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SendVerificationEmail'
-          description: ''
   /api/users/verify-email/:
     post:
       operationId: api_users_verify_email_create
+      description: Verify email address for a newly registered user.
       tags:
       - api
       requestBody:
@@ -943,33 +1746,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VerifyEmail'
-          description: ''
-  /api/users/verify-phone/:
-    post:
-      operationId: api_users_verify_phone_create
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VerifyPhone'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/VerifyPhone'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/VerifyPhone'
-        required: true
-      security:
-      - cookieAuth: []
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VerifyPhone'
           description: ''
   /api/wallet/wallet/:
     get:
@@ -1047,13 +1823,140 @@ components:
         new_password:
           type: string
           writeOnly: true
-        confirm_new_password:
+        confirm_password:
           type: string
           writeOnly: true
       required:
-      - confirm_new_password
+      - confirm_password
       - new_password
       - old_password
+    Contract:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        job:
+          allOf:
+          - $ref: '#/components/schemas/Job'
+          readOnly: true
+        client:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        freelancer:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        contract_text:
+          type: string
+          nullable: true
+        terms: {}
+        agreed_bid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+        currency:
+          $ref: '#/components/schemas/CurrencyEnum'
+        status:
+          $ref: '#/components/schemas/ContractStatusEnum'
+        escrow_status:
+          $ref: '#/components/schemas/EscrowStatusEnum'
+        escrow_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        start_date:
+          type: string
+          format: date-time
+          readOnly: true
+        expiry_date:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Milestone'
+          readOnly: true
+        audit_trails:
+          type: string
+          readOnly: true
+      required:
+      - audit_trails
+      - client
+      - created_at
+      - freelancer
+      - id
+      - job
+      - milestones
+      - start_date
+      - updated_at
+    ContractCreate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        job_id:
+          type: integer
+        freelancer_id:
+          type: integer
+        terms: {}
+        agreed_bid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+        currency:
+          $ref: '#/components/schemas/CurrencyEnum'
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Milestone'
+      required:
+      - freelancer_id
+      - id
+      - job_id
+    ContractStatusEnum:
+      enum:
+      - pending_acceptance
+      - active
+      - rejected
+      - disputed
+      type: string
+      description: |-
+        * `pending_acceptance` - Pending Acceptance
+        * `active` - Active
+        * `rejected` - Rejected
+        * `disputed` - Disputed
+    CurrencyEnum:
+      enum:
+      - USD
+      - EUR
+      - GBP
+      - GHS
+      - NGN
+      - KES
+      type: string
+      description: |-
+        * `USD` - US Dollar
+        * `EUR` - Euro
+        * `GBP` - British Pound
+        * `GHS` - Ghanaian Cedi
+        * `NGN` - Nigerian Naira
+        * `KES` - Kenyan Shilling
     Dashboard:
       type: object
       properties:
@@ -1074,6 +1977,15 @@ components:
       required:
       - created_at
       - updated_at
+    Deposit:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - amount
     Escrow:
       type: object
       properties:
@@ -1111,16 +2023,16 @@ components:
       - updated_at
     EscrowStatusEnum:
       enum:
-      - HELD
-      - RELEASED
-      - REFUNDED
-      - DISPUTED
+      - not_funded
+      - funded
+      - released
+      - refunded
       type: string
       description: |-
-        * `HELD` - Held
-        * `RELEASED` - Released
-        * `REFUNDED` - Refunded
-        * `DISPUTED` - Disputed
+        * `not_funded` - Not Funded
+        * `funded` - Funded
+        * `released` - Released
+        * `refunded` - Refunded
     Job:
       type: object
       properties:
@@ -1129,97 +2041,100 @@ components:
           readOnly: true
         title:
           type: string
-          nullable: true
-          maxLength: 255
+          maxLength: 200
         description:
           type: string
         budget:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-        location:
+        duration:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Estimated duration in days
+        deadline:
           type: string
-          maxLength: 255
+          format: date-time
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusB2eEnum'
+      required:
+      - budget
+      - description
+      - id
+      - title
+    JobDetail:
+      type: object
+      description: |-
+        Detailed serializer for a single job.
+        Can be extended to include proposals, client profile, freelancer profile, etc.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        client:
+          type: string
+          readOnly: true
+        freelancer:
+          type: string
+          readOnly: true
+        skills_required:
+          type: array
+          items:
+            type: string
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        duration:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Estimated duration in days
+        deadline:
+          type: string
+          format: date-time
+          nullable: true
         created_at:
           type: string
           format: date-time
           readOnly: true
-        deadline:
+        updated_at:
           type: string
-          format: date
+          format: date-time
+          readOnly: true
         status:
-          $ref: '#/components/schemas/StatusE8dEnum'
-        client:
-          type: integer
+          allOf:
+          - $ref: '#/components/schemas/StatusB2eEnum'
           readOnly: true
       required:
       - budget
       - client
       - created_at
-      - deadline
       - description
-      - id
-    JobApplication:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        cover_letter:
-          type: string
-        is_selected:
-          type: boolean
-        applied_at:
-          type: string
-          format: date-time
-          readOnly: true
-        selected_at:
-          type: string
-          format: date-time
-          nullable: true
-        status:
-          $ref: '#/components/schemas/JobApplicationStatusEnum'
-        message:
-          type: string
-        is_active:
-          type: boolean
-        attachment:
-          type: string
-          format: uri
-          nullable: true
-        feedback:
-          type: string
-        job:
-          type: integer
-        freelancer:
-          type: integer
-      required:
-      - applied_at
-      - cover_letter
       - freelancer
       - id
-      - job
-    JobApplicationStatusEnum:
-      enum:
-      - PENDING
-      - ACCEPTED
-      - REJECTED
-      - WITHDRAWN
-      type: string
-      description: |-
-        * `PENDING` - Pending
-        * `ACCEPTED` - Accepted
-        * `REJECTED` - Rejected
-        * `WITHDRAWN` - Withdrawn
-    JobCompletion:
+      - status
+      - title
+      - updated_at
+    JobStatus:
       type: object
+      description: |-
+        Separate serializer for updating only the job status.
+        Useful for endpoints like: /jobs/<id>/update-status/
       properties:
         status:
-          allOf:
-          - $ref: '#/components/schemas/StatusE8dEnum'
-          readOnly: true
-      required:
-      - status
+          $ref: '#/components/schemas/StatusB2eEnum'
     Login:
       type: object
       properties:
@@ -1268,6 +2183,53 @@ components:
       - is_received
       - recipient
       - sender
+    Milestone:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        description:
+          type: string
+        due_date:
+          type: string
+          format: date-time
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/MilestoneStatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - created_at
+      - description
+      - due_date
+      - id
+      - updated_at
+    MilestoneStatusEnum:
+      enum:
+      - pending
+      - in_progress
+      - completed
+      - disputed
+      - released
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `in_progress` - In Progress
+        * `completed` - Completed
+        * `disputed` - Disputed
+        * `released` - Released
     Notification:
       type: object
       properties:
@@ -1301,46 +2263,161 @@ components:
           format: email
       required:
       - email
-    PatchedJobApplication:
+    PatchedChangePassword:
+      type: object
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+        confirm_password:
+          type: string
+          writeOnly: true
+    PatchedContract:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        job:
+          allOf:
+          - $ref: '#/components/schemas/Job'
+          readOnly: true
+        client:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        freelancer:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        contract_text:
+          type: string
+          nullable: true
+        terms: {}
+        agreed_bid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+        currency:
+          $ref: '#/components/schemas/CurrencyEnum'
+        status:
+          $ref: '#/components/schemas/ContractStatusEnum'
+        escrow_status:
+          $ref: '#/components/schemas/EscrowStatusEnum'
+        escrow_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        start_date:
+          type: string
+          format: date-time
+          readOnly: true
+        expiry_date:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Milestone'
+          readOnly: true
+        audit_trails:
+          type: string
+          readOnly: true
+    PatchedJob:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-        cover_letter:
+        client:
           type: string
-        is_selected:
-          type: boolean
-        applied_at:
+          readOnly: true
+        freelancer:
+          type: string
+          readOnly: true
+        skills_required:
+          type: array
+          items:
+            type: string
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        duration:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Estimated duration in days
+        deadline:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
           type: string
           format: date-time
           readOnly: true
-        selected_at:
+        updated_at:
           type: string
           format: date-time
-          nullable: true
-        status:
-          $ref: '#/components/schemas/JobApplicationStatusEnum'
-        message:
-          type: string
-        is_active:
-          type: boolean
-        attachment:
-          type: string
-          format: uri
-          nullable: true
-        feedback:
-          type: string
-        job:
-          type: integer
-        freelancer:
-          type: integer
-    PatchedJobCompletion:
-      type: object
-      properties:
+          readOnly: true
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusE8dEnum'
+          - $ref: '#/components/schemas/StatusB2eEnum'
+          readOnly: true
+    PatchedJobStatus:
+      type: object
+      description: |-
+        Separate serializer for updating only the job status.
+        Useful for endpoints like: /jobs/<id>/update-status/
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusB2eEnum'
+    PatchedMilestone:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        description:
+          type: string
+        due_date:
+          type: string
+          format: date-time
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/MilestoneStatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
           readOnly: true
     PatchedProfileUpdate:
       type: object
@@ -1366,46 +2443,24 @@ components:
           type: string
           format: uri
           nullable: true
-    PatchedUser:
+    PatchedProposalStatus:
       type: object
+      description: |-
+        Serializer for clients to update the proposal status
+        (Accept or Decline).
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusFfeEnum'
+    PatchedSkill:
+      type: object
+      description: Serializer for Skill model (used by admins).
       properties:
         id:
           type: integer
           readOnly: true
-        username:
+        name:
           type: string
-          readOnly: true
-        email:
-          type: string
-          format: email
-          title: Email Address
-          maxLength: 254
-        first_name:
-          type: string
-          maxLength: 150
-        last_name:
-          type: string
-          maxLength: 150
-        phone:
-          type: string
-          title: Phone Number
-          maxLength: 20
-        is_freelancer:
-          type: boolean
-        is_client:
-          type: boolean
-        language_preference:
-          type: string
-          maxLength: 10
-        is_verified:
-          type: boolean
-        wallet:
-          allOf:
-          - $ref: '#/components/schemas/Wallet'
-          readOnly: true
-        notifications:
-          type: string
-          readOnly: true
+          maxLength: 50
     Profile:
       type: object
       properties:
@@ -1510,6 +2565,58 @@ components:
           type: string
           format: uri
           nullable: true
+    Proposal:
+      type: object
+      description: |-
+        Serializer for freelancers to submit proposals
+        and for clients to view them.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        freelancer:
+          type: string
+          readOnly: true
+        job:
+          type: integer
+        job_title:
+          type: string
+          readOnly: true
+        cover_letter:
+          type: string
+        bid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        estimated_time:
+          type: string
+          maxLength: 100
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusFfeEnum'
+          readOnly: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - bid
+      - cover_letter
+      - estimated_time
+      - freelancer
+      - id
+      - job
+      - job_title
+      - status
+      - submitted_at
+    ProposalStatus:
+      type: object
+      description: |-
+        Serializer for clients to update the proposal status
+        (Accept or Decline).
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusFfeEnum'
     PublicProfile:
       type: object
       properties:
@@ -1620,14 +2727,19 @@ components:
       - new_password
       - token
       - uidb64
-    SendVerificationEmail:
+    Skill:
       type: object
+      description: Serializer for Skill model (used by admins).
       properties:
-        email:
+        id:
+          type: integer
+          readOnly: true
+        name:
           type: string
-          format: email
+          maxLength: 50
       required:
-      - email
+      - id
+      - name
     Status911Enum:
       enum:
       - PENDING
@@ -1640,18 +2752,30 @@ components:
         * `COMPLETED` - Completed
         * `FAILED` - Failed
         * `REFUNDED` - Refunded
-    StatusE8dEnum:
+    StatusB2eEnum:
       enum:
-      - OPEN
-      - IN_PROGRESS
-      - AWAITING_REVIEW
-      - COMPLETED
+      - available
+      - pending
+      - in_progress
+      - completed
+      - cancelled
       type: string
       description: |-
-        * `OPEN` - Open
-        * `IN_PROGRESS` - In Progress
-        * `AWAITING_REVIEW` - Awaiting Review
-        * `COMPLETED` - Completed
+        * `available` - Available
+        * `pending` - Pending
+        * `in_progress` - In Progress
+        * `completed` - Completed
+        * `cancelled` - Cancelled
+    StatusFfeEnum:
+      enum:
+      - submitted
+      - declined
+      - accepted
+      type: string
+      description: |-
+        * `submitted` - Submitted
+        * `declined` - Declined
+        * `accepted` - Accepted
     Transaction:
       type: object
       properties:
@@ -1728,47 +2852,18 @@ components:
         id:
           type: integer
           readOnly: true
-        username:
+        full_name:
           type: string
-          readOnly: true
+          maxLength: 255
         email:
           type: string
           format: email
           title: Email Address
           maxLength: 254
-        first_name:
-          type: string
-          maxLength: 150
-        last_name:
-          type: string
-          maxLength: 150
-        phone:
-          type: string
-          title: Phone Number
-          maxLength: 20
-        is_freelancer:
-          type: boolean
-        is_client:
-          type: boolean
-        language_preference:
-          type: string
-          maxLength: 10
-        is_verified:
-          type: boolean
-        wallet:
-          allOf:
-          - $ref: '#/components/schemas/Wallet'
-          readOnly: true
-        notifications:
-          type: string
-          readOnly: true
       required:
       - email
+      - full_name
       - id
-      - notifications
-      - phone
-      - username
-      - wallet
     VerifyEmail:
       type: object
       properties:
@@ -1781,26 +2876,24 @@ components:
       required:
       - token
       - uidb64
-    VerifyPhone:
-      type: object
-      properties:
-        phone:
-          type: string
-          writeOnly: true
-        code:
-          type: string
-          writeOnly: true
-      required:
-      - code
-      - phone
     Wallet:
       type: object
       properties:
         balance:
           type: string
           format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-          description: Current balance in USD
+          pattern: ^-?\d{0,12}(?:\.\d{0,6})?$
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - updated_at
   securitySchemes:
     cookieAuth:
       type: apiKey
