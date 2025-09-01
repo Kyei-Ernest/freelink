@@ -1,16 +1,26 @@
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions, serializers
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from .models import Contract, Milestone, AuditTrail, ContractDocument
-from .serializers import ContractSerializer, ContractCreateSerializer, MilestoneSerializer, AuditTrailSerializer, ContractDocumentSerializer
-from .permissions import IsClientOrFreelancer, IsClient, IsFreelancer, IsContractParty
+from .models import Contract, Milestone, AuditTrail
+from .serializers import ContractSerializer, ContractCreateSerializer, MilestoneSerializer
+from .permissions import IsClient, IsFreelancer, IsContractParty, IsClientOrFreelancer
+
 
 class ContractViewSet(ModelViewSet):
+    """
+        ViewSet for managing contracts.
+        - create: Client creates a new contract.
+        - list/retrieve: List or get details of contracts.
+        - update: Update contract details.
+        """
     queryset = Contract.objects.all()
     permission_classes = [IsClientOrFreelancer]
+    serializer_class = ContractSerializer
+
+
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -27,6 +37,9 @@ class ContractViewSet(ModelViewSet):
         serializer.save(client=self.request.user)
 
 class ContractAcceptView(APIView):
+    """
+        Freelancer accepts a contract that is in 'pending_acceptance' state.
+    """
     permission_classes = [IsFreelancer, IsContractParty]
 
     def patch(self, request, pk):
@@ -40,13 +53,16 @@ class ContractAcceptView(APIView):
         contract.save()
         AuditTrail.objects.create(
             contract=contract,
-            user=request.user,
+            performed_by=request.user,
             action='contract_accepted',
             details={'status': contract.status}
         )
         return Response(ContractSerializer(contract).data)
 
 class ContractRejectView(APIView):
+    """
+        Freelancer rejects a contract that is in 'pending_acceptance' state.
+    """
     permission_classes = [IsFreelancer, IsContractParty]
 
     def patch(self, request, pk):
@@ -55,18 +71,21 @@ class ContractRejectView(APIView):
             return Response({"error": "Contract is not pending acceptance"}, status=status.HTTP_400_BAD_REQUEST)
         if contract.freelancer != request.user:
             return Response({"error": "Only the assigned freelancer can reject"}, status=status.HTTP_403_FORBIDDEN)
-        contract.status = 'cancelled'
+        contract.status = 'Rejected'
         contract.expiry_date = None
         contract.save()
         AuditTrail.objects.create(
             contract=contract,
-            user=request.user,
+            performed_by=request.user,
             action='contract_rejected',
             details={'status': contract.status}
         )
         return Response(ContractSerializer(contract).data)
 
-class ContractCancelView(APIView):
+"""class ContractCancelView(APIView):
+    ""
+        Client or freelancer cancels a contract that is in 'draft' or 'pending_acceptance'.
+    ""
     permission_classes = [IsClientOrFreelancer]
 
     def patch(self, request, pk):
@@ -80,13 +99,17 @@ class ContractCancelView(APIView):
         contract.save()
         AuditTrail.objects.create(
             contract=contract,
-            user=request.user,
+            performed_by=request.user,
             action='contract_cancelled',
             details={'status': contract.status}
         )
         return Response(ContractSerializer(contract).data)
+"""
 
-class ContractMarkCompleteView(APIView):
+"""class ContractMarkCompleteView(APIView):
+    ""
+        Client marks a contract as completed (only when in 'in_review' state).
+    ""
     permission_classes = [IsClient, IsContractParty]
 
     def patch(self, request, pk):
@@ -94,17 +117,21 @@ class ContractMarkCompleteView(APIView):
         if contract.status != 'in_review':
             return Response({"error": "Contract must be in review to mark complete"}, status=status.HTTP_400_BAD_REQUEST)
         contract.status = 'completed'
-        contract.escrow_status = 'released'  # Release funds on completion
+        #contract.escrow_status = 'released'  # Release funds on completion
         contract.save()
         AuditTrail.objects.create(
             contract=contract,
-            user=request.user,
+            performed_by=request.user,
             action='contract_completed',
             details={'status': contract.status, 'escrow_status': contract.escrow_status}
         )
         return Response(ContractSerializer(contract).data)
+"""
 
 class ContractDisputeView(APIView):
+    """
+        Either client or freelancer can raise a dispute on an active or in-review contract.
+    """
     permission_classes = [IsClientOrFreelancer]
 
     def patch(self, request, pk):
@@ -119,13 +146,16 @@ class ContractDisputeView(APIView):
         contract.save()
         AuditTrail.objects.create(
             contract=contract,
-            user=request.user,
+            performed_by=request.user,
             action='dispute_raised',
             details={'dispute_reason': contract.dispute_reason}
         )
         return Response(ContractSerializer(contract).data)
 
 class ContractSubmitWorkView(APIView):
+    """
+       Freelancer submits work for a contract (moves it from 'active' → 'in_review').
+    """
     permission_classes = [IsFreelancer, IsContractParty]
 
     def patch(self, request, pk):
@@ -138,13 +168,16 @@ class ContractSubmitWorkView(APIView):
         contract.save()
         AuditTrail.objects.create(
             contract=contract,
-            user=request.user,
+            performed_by=request.user,
             action='work_submitted',
             details={'status': contract.status}
         )
         return Response(ContractSerializer(contract).data)
 
 class UserContractsView(APIView):
+    """
+       List all contracts for a given user (client or freelancer).
+       """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, user_id):
@@ -155,8 +188,14 @@ class UserContractsView(APIView):
         return Response(serializer.data)
 
 class MilestoneViewSet(ModelViewSet):
+    """
+       ViewSet for managing milestones within a contract.
+       - create: Add a milestone to a contract (only if active).
+       - list/retrieve: List or get details of milestones for a contract.
+       - update/delete: Update or remove milestones.
+    """
     serializer_class = MilestoneSerializer
-    permission_classes = [IsContractParty]
+    permission_classes = [IsClient]
 
     def get_queryset(self):
         contract_id = self.kwargs.get('contract_id')
@@ -168,7 +207,7 @@ class MilestoneViewSet(ModelViewSet):
             raise serializers.ValidationError("Cannot add milestones to non-active contract")
         serializer.save(contract=contract)
 
-class ContractDocumentViewSet(ModelViewSet):
+"""class ContractDocumentViewSet(ModelViewSet):
     serializer_class = ContractDocumentSerializer
     permission_classes = [IsContractParty]
 
@@ -179,3 +218,4 @@ class ContractDocumentViewSet(ModelViewSet):
     def perform_create(self, serializer):
         contract = get_object_or_404(Contract, pk=self.kwargs['contract_id'])
         serializer.save(contract=contract, uploaded_by=self.request.user)
+"""

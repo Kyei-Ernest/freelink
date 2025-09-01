@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'drf_spectacular_sidecar',
     'django_filters',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -91,7 +92,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Freelink',
-    'DESCRIPTION': 'API for freelancers',
+    'DESCRIPTION': 'API for freelancing system',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
@@ -196,4 +197,8 @@ LOGGING = {
         'level': 'DEBUG',
     },
 }
+
+
+PAYSTACK_SECRET_KEY = "sk_test_66d7104381b1328c6db774c82e17db01c0b01f35"
+PAYSTACK_PUBLIC_KEY = "pk_test_dc1ea32617dae37270e4a5d4e9e49f1a228d4125"
 
