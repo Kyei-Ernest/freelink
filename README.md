@@ -38,7 +38,7 @@ Features
 Tech Stack
 -------------
 - Backend: Django, Django REST Framework  
-- Database: PostgreSQL  
+- Database: SQLite for now  
 - Authentication: JWT (via `djangorestframework-simplejwt`)  
 - Payments: (Paystack)  
 
@@ -53,13 +53,7 @@ cd freelink-api
 ```
 
 2. Set up environment  
-Create a `.env` file with your settings:
-
-```env
-SECRET_KEY=your-secret-key
-DEBUG=True
-DATABASE_URL=postgres://user:password@localhost:5432/freelink
-```
+#####
 
 3. Install dependencies
 ```bash
@@ -97,7 +91,7 @@ Contributions are welcome! To get started:
 
 License
 ----------
-This project is licensed under the **MIT License**.  
+This project is licensed under the MIT License.  
 Feel free to use, modify, and distribute it.
 
 ---
