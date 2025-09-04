@@ -9,9 +9,22 @@ class DepositSerializer(serializers.Serializer):
             raise serializers.ValidationError("Deposit amount must be greater than zero.")
         return value
 
-class TransferRecipientSerializer(serializers.Serializer):
+
+
+
+
+
+class MobileMoneyRecipientSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     account_number = serializers.CharField(max_length=20)
-    service_provider = serializers.CharField(max_length=50)
+    service_provider = serializers.ChoiceField(choices=[('mtn', 'MTN'), ('vodafone', 'Vodafone'), ('tigo', 'AirtelTigo')])
 
 
+class TransferSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    recipient_code = serializers.CharField(max_length=100)
+
+class BankTransferRecipientSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    account_number = serializers.CharField(max_length=20)
+    bank_code = serializers.CharField(max_length=50)
