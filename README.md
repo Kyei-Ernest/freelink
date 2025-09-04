@@ -1,7 +1,7 @@
 Freelink API
 ============
 
-A REST API for a freelance job marketplace, built with **aDjango REST Framework**.  
+A REST API for a freelance job marketplace, built with **Django REST Framework**.  
 It provides authentication, contracts, job management, messaging, payments, and more — making it easy to build Upwork/Fiverr-like platforms.
 
 Table of Contents
