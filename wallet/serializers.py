@@ -1,8 +1,13 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from .models import Wallet, Currency
 
 
 class WalletSerializer(ModelSerializer):
+    currency = serializers.SlugRelatedField(
+        slug_field="code", read_only=True
+    )
+
     class Meta:
         model = Wallet
         fields = [
@@ -21,7 +26,7 @@ class WalletSerializer(ModelSerializer):
             "available_balance",
             "created_at",
             "updated_at",
-            "user",   # user is set automatically
+            "user",
         ]
 
 

@@ -60,6 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'phone',
+            'country',
             'is_freelancer',
             'is_client',
             'language_preference',
@@ -82,7 +83,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'full_name', 'email', 'phone', 'password', 'password_confirm',
+            'full_name', 'email', 'phone', 'country', 'password', 'password_confirm',
             'is_freelancer', 'is_client'
         )
         extra_kwargs = {

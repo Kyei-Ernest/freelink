@@ -5,11 +5,24 @@ from .managers import UserManager
 
 
 class User(AbstractUser):
+    COUNTRY_CHOICES = [
+        ("GH", "Ghana"),
+        ("NG", "Nigeria"),
+    ]
+
+
+
     username = None  # Remove username
     full_name = models.CharField(_("Full Name"), max_length=255)
     email = models.EmailField(_("Email Address"), unique=True)
     phone = models.CharField(_("Phone Number"), max_length=20, unique=True)
-
+    country = models.CharField(
+        max_length=2,
+        choices=COUNTRY_CHOICES,
+        default="GH",
+        blank=False,  # ensure it's required
+        null=False,  # ensure it's required at the DB level
+    )
     is_freelancer = models.BooleanField(default=False)
     is_client = models.BooleanField(default=False)
     language_preference = models.CharField(_("Language Preference"), max_length=10, default="en")
