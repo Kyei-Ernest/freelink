@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from transactions.models import Transaction
-from escrow.models import EscrowDispute
+#from escrow.models import EscrowDispute
 from wallet.models import Wallet
 from chat.models import Message
 
@@ -42,7 +41,7 @@ class Dashboard(models.Model):
     def __str__(self):
         return f"Dashboard for {self.user.username}"
 
-    def update_metrics(self):
+    """def update_metrics(self):
         metrics = {}
         if hasattr(self.user, 'wallet'):
             metrics['balance'] = float(self.user.wallet.balance)
@@ -56,4 +55,4 @@ class Dashboard(models.Model):
             metrics['open_disputes'] = EscrowDispute.objects.filter(escrow__transaction__freelancer=self.user, status='OPEN').count()
         metrics['unread_messages'] = Message.objects.filter(recipient=self.user, is_read=False).count()
         self.cached_metrics = metrics
-        self.save()
+        self.save()"""
